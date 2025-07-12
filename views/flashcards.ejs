@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash Cards - <%= topic %></title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <!-- Pre-calculate progress percentage to avoid CSS parsing issues -->
+    <% const progressPercentage = Math.round(((currentIndex + 1) / content.length) * 100); %>
+</head>
+<body class="bg-gradient-primary">
+    <div class="container-fluid min-vh-100 py-4">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-xl-6">
+                    
+                    <!-- Header Section -->
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <a href="/" class="btn btn-outline-light btn-lg rounded-pill px-4">
+                            <i class="bi bi-arrow-left me-2"></i>
+                            Back to Dashboard
+                        </a>
+                        <div class="text-end">
+                            <small class="text-white-50 d-block">Study Session</small>
+                        </div>
+                    </div>
+
+                    <!-- Topic Header -->
+                    <div class="text-center mb-4">
+                        <div class="d-inline-flex align-items-center bg-white bg-opacity-10 rounded-pill px-4 py-2 mb-3">
+                            <i class="bi bi-card-text text-white me-2"></i>
+                            <span class="text-white fw-semibold">Flash Cards</span>
+                        </div>
+                        <h1 class="display-5 fw-bold text-white mb-2"><%= topic %></h1>
+                        <p class="text-white-50 mb-0">
+                            <i class="bi bi-mortarboard me-2"></i>
+                            Grade Level: <%= gradeLevel %>
+                        </p>
+                    </div>
+                    
+
+                    <!-- Flashcard Container -->
+                    <div class="flashcard-wrapper mb-4">
+                        <% if (showAnswer) { %>
+                            <!-- Answer Side -->
+                            <div class="card flashcard-main border-0 shadow-lg">
+                                <div class="card-body p-5 text-center d-flex flex-column answer-card">
+                                    <div class="mb-4">
+                                        <div class="d-inline-flex align-items-center bg-success bg-opacity-10 rounded-pill px-3 py-2 mb-3">
+                                            <i class="bi bi-check-circle text-success me-2"></i>
+                                            <span class="text-success fw-semibold">Answer</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+                                        <p class="fs-4 text-dark mb-0 lh-base">
+                                            <%= content[currentIndex].answer %>
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="mt-4">
+                                        <form action="/flashcard" method="POST" class="card-form">
+                                            <input type="hidden" name="topic" value="<%= topic %>">
+                                            <input type="hidden" name="gradeLevel" value="<%= gradeLevel %>">
+                                            <input type="hidden" name="currentIndex" value="<%= currentIndex %>">
+                                            <input type="hidden" name="showAnswer" value="false">
+                                            <button type="submit" class="btn btn-primary btn-lg px-4 py-2 rounded-pill">
+                                                <i class="bi bi-question-circle me-2"></i>
+                                                Show Question
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        <% } else { %>
+                            <!-- Question Side -->
+                            <div class="card flashcard-main border-0 shadow-lg">
+                                <div class="card-body p-5 text-center d-flex flex-column question-card">
+                                    <div class="mb-4">
+                                        <div class="d-inline-flex align-items-center bg-primary bg-opacity-10 rounded-pill px-3 py-2 mb-3">
+                                            <i class="bi bi-question-circle text-primary me-2"></i>
+                                            <span class="text-primary fw-semibold">Question</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+                                        <p class="fs-4 text-dark mb-0 lh-base">
+                                            <%= content[currentIndex].question %>
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="mt-4">
+                                        <form action="/flashcard" method="POST" class="card-form">
+                                            <input type="hidden" name="topic" value="<%= topic %>">
+                                            <input type="hidden" name="gradeLevel" value="<%= gradeLevel %>">
+                                            <input type="hidden" name="currentIndex" value="<%= currentIndex %>">
+                                            <input type="hidden" name="showAnswer" value="true">
+                                            <button type="submit" class="btn btn-success btn-lg px-4 py-2 rounded-pill">
+                                                <i class="bi bi-eye me-2"></i>
+                                                Show Answer
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+
+                    <!-- Navigation Controls -->
+                    <div class="d-flex justify-content-between align-items-center gap-3">
+                        <!-- Previous Button -->
+                        <div class="flex-fill">
+                            <% if (currentIndex > 0) { %>
+                                <form action="/flashcard" method="POST" class="w-100">
+                                    <input type="hidden" name="topic" value="<%= topic %>">
+                                    <input type="hidden" name="gradeLevel" value="<%= gradeLevel %>">
+                                    <input type="hidden" name="currentIndex" value="<%= currentIndex - 1 %>">
+                                    <input type="hidden" name="showAnswer" value="false">
+                                    <button type="submit" class="btn btn-outline-light btn-lg w-100 py-3">
+                                        <i class="bi bi-chevron-left me-2"></i>
+                                        Previous
+                                    </button>
+                                </form>
+                            <% } else { %>
+                                <button class="btn btn-outline-light btn-lg w-100 py-3" disabled>
+                                    <i class="bi bi-chevron-left me-2"></i>
+                                    Previous
+                                </button>
+                            <% } %>
+                        </div>
+
+                        <!-- Card Counter (Mobile) -->
+                        <div class="d-flex align-items-center text-white d-md-none">
+                            <small class="fw-semibold">
+                                <%= currentIndex + 1 %>/<%= content.length %>
+                            </small>
+                        </div>
+
+                        <!-- Next Button -->
+                        <div class="flex-fill">
+                            <% if (currentIndex < content.length - 1) { %>
+                                <form action="/flashcard" method="POST" class="w-100">
+                                    <input type="hidden" name="topic" value="<%= topic %>">
+                                    <input type="hidden" name="gradeLevel" value="<%= gradeLevel %>">
+                                    <input type="hidden" name="currentIndex" value="<%= currentIndex + 1 %>">
+                                    <input type="hidden" name="showAnswer" value="false">
+                                    <button type="submit" class="btn btn-outline-light btn-lg w-100 py-3">
+                                        Next
+                                        <i class="bi bi-chevron-right ms-2"></i>
+                                    </button>
+                                </form>
+                            <% } else { %>
+                                <button class="btn btn-outline-light btn-lg w-100 py-3" disabled>
+                                    Next
+                                    <i class="bi bi-chevron-right ms-2"></i>
+                                </button>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <!-- Study Tips -->
+                    <div class="text-center mt-4">
+                        <small class="text-white-50">
+                            <i class="bi bi-lightbulb me-1"></i>
+                            Tip: Read the question carefully before revealing the answer
+                        </small>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom CSS for additional styling -->
+    <style>
+        .flashcard-main {
+            min-height: 400px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .flashcard-main:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2) !important;
+        }
+        
+        .question-card {
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%);
+            border-left: 5px solid var(--bs-primary);
+        }
+        
+        .answer-card {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-left: 5px solid var(--bs-success);
+        }
+        
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .flashcard-main {
+                min-height: 350px;
+            }
+            
+            .card-body {
+                padding: 2rem !important;
+            }
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,739 @@
+/* CSS Custom Properties for Better Maintainability */
+:root {
+    --primary-color: #667eea;
+    --secondary-color: #764ba2;
+    --accent-color: #f8f9ff;
+    --text-color: #333;
+    --border-color: #e0e0e0;
+    --success-color: #28a745;
+    --error-color: #dc3545;
+    --shadow: 0 10px 30px rgba(0,0,0,0.2);
+    --radius: 8px;
+    --radius-large: 15px;
+    --transition: all 0.3s ease;
+}
+
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    min-height: 100vh;
+    color: var(--text-color);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header Styles */
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    color: white;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+header p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 5px;
+}
+
+/* Dashboard Styles */
+.dashboard-card {
+    background: white;
+    border-radius: var(--radius-large);
+    padding: 40px;
+    box-shadow: var(--shadow);
+    max-width: 600px;
+    margin: 0 auto;
+    transition: var(--transition);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    font-size: 16px;
+    transition: var(--transition);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.radio-group {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 10px 15px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    transition: var(--transition);
+    flex: 1;
+    min-width: 140px;
+}
+
+.radio-option:hover {
+    border-color: var(--primary-color);
+    background: var(--accent-color);
+}
+
+.radio-option input[type="radio"] {
+    width: auto;
+    margin-right: 8px;
+}
+
+.radio-option input[type="radio"]:checked + span {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.generate-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+}
+
+.generate-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.generate-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Loading state for generate button */
+.generate-btn.loading {
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.generate-btn.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Flashcard Styles - Updated to match template structure */
+.flashcard-container {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.flashcard-counter {
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    color: white;
+    font-weight: 600;
+}
+
+.flashcard {
+    background: white;
+    border-radius: var(--radius-large);
+    box-shadow: var(--shadow);
+    padding: 40px;
+    margin-bottom: 30px;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: var(--transition);
+}
+
+.flashcard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+}
+
+.flashcard.answer-side {
+    background: var(--accent-color);
+    border-left: 5px solid var(--primary-color);
+}
+
+.flashcard h3 {
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+.flashcard p {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    text-align: center;
+    margin-bottom: 30px;
+    max-width: 90%;
+}
+
+.card-form {
+    margin-top: auto;
+}
+
+.flashcard-controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.control-btn {
+    padding: 12px 24px;
+    background: white;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+    text-decoration: none;
+    display: inline-block;
+}
+
+.control-btn:hover:not(:disabled) {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.flip-btn {
+    background: var(--primary-color);
+    color: white;
+}
+
+.flip-btn:hover {
+    background: #5a6fd8;
+}
+
+/* Quiz Styles - Complete implementation */
+.quiz-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    border-radius: var(--radius-large);
+    padding: 30px;
+    box-shadow: var(--shadow);
+}
+
+.quiz-info {
+    text-align: center;
+    color: white;
+    margin-bottom: 10px;
+    font-style: italic;
+    opacity: 0.9;
+}
+
+.questions-container {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* Custom scrollbar */
+.questions-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.questions-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.questions-container::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
+}
+
+.question-block {
+    background: var(--accent-color);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    transition: var(--transition);
+}
+
+.question-block:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+}
+
+.question-number {
+    color: var(--primary-color);
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+}
+
+.question-text h3 {
+    color: var(--text-color);
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    line-height: 1.4;
+}
+
+.options-container {
+    margin-top: 15px;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    background: white;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.option:hover {
+    border-color: var(--primary-color);
+    background: var(--accent-color);
+}
+
+.option:focus-within {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.option input[type="radio"] {
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.option input[type="radio"]:checked + label {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.option label {
+    cursor: pointer;
+    flex: 1;
+    margin: 0;
+}
+
+.quiz-controls {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.submit-btn {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+/* Quiz Results Styles */
+.quiz-results {
+    text-align: center;
+}
+
+.quiz-results h2 {
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    font-size: 2rem;
+}
+
+.score-display {
+    margin: 20px 0;
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    padding: 20px;
+    background: var(--accent-color);
+    border-radius: var(--radius);
+    border: 2px solid var(--primary-color);
+}
+
+.answers-review {
+    margin-top: 30px;
+    text-align: left;
+}
+
+.answers-review h3 {
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+.answer-item {
+    background: var(--accent-color);
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: var(--radius);
+    border-left: 4px solid var(--primary-color);
+    transition: var(--transition);
+}
+
+.answer-item:hover {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.answer-item p {
+    margin-bottom: 8px;
+}
+
+.answer-item p:last-child {
+    margin-bottom: 0;
+}
+
+.correct {
+    color: var(--success-color);
+    font-weight: bold;
+}
+
+.incorrect {
+    color: var(--error-color);
+    font-weight: bold;
+}
+
+/* Notes Styles */
+.notes-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    border-radius: var(--radius-large);
+    padding: 30px;
+    box-shadow: var(--shadow);
+}
+
+.notes-content {
+    margin-bottom: 30px;
+}
+
+.notes-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: var(--text-color);
+    margin-bottom: 30px;
+}
+
+/* Enhanced typography for notes */
+.notes-text h1,
+.notes-text h2,
+.notes-text h3,
+.notes-text h4,
+.notes-text h5,
+.notes-text h6 {
+    color: var(--primary-color);
+    margin: 1.5em 0 0.5em 0;
+    font-weight: 600;
+}
+
+.notes-text h1 { font-size: 2rem; }
+.notes-text h2 { font-size: 1.75rem; }
+.notes-text h3 { font-size: 1.5rem; }
+.notes-text h4 { font-size: 1.25rem; }
+
+.notes-text ul,
+.notes-text ol {
+    margin: 1em 0;
+    padding-left: 2em;
+}
+
+.notes-text li {
+    margin-bottom: 0.5em;
+}
+
+.notes-text p {
+    margin-bottom: 1em;
+}
+
+.notes-text strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.notes-text code {
+    background: var(--accent-color);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+}
+
+.notes-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Back Button */
+.back-btn {
+    display: inline-block;
+    color: white;
+    text-decoration: none;
+    margin-bottom: 20px;
+    font-weight: 600;
+    transition: var(--transition);
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    background: rgba(255,255,255,0.1);
+}
+
+.back-btn:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateX(-2px);
+}
+
+.back-btn::before {
+    content: "←";
+    margin-right: 8px;
+}
+
+/* Enhanced Focus States for Accessibility */
+.form-group input:focus,
+.form-group select:focus,
+.option:focus-within,
+.control-btn:focus,
+.generate-btn:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    .dashboard-card {
+        padding: 25px;
+    }
+    
+    .radio-group {
+        flex-direction: column;
+    }
+    
+    .radio-option {
+        min-width: auto;
+    }
+    
+    .flashcard-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .flashcard {
+        height: 300px;
+        padding: 25px;
+    }
+    
+    .question-block {
+        padding: 20px;
+    }
+    
+    .option {
+        padding: 10px 12px;
+    }
+    
+    .notes-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    .score-display {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .dashboard-card {
+        padding: 20px;
+    }
+    
+    .flashcard {
+        height: 280px;
+        padding: 20px;
+    }
+    
+    .quiz-container {
+        padding: 20px;
+    }
+    
+    .notes-container {
+        padding: 20px;
+    }
+    
+    header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .control-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    body {
+        background: white;
+        color: black;
+    }
+    
+    .container {
+        max-width: none;
+        padding: 0;
+    }
+    
+    header {
+        color: black;
+    }
+    
+    .notes-actions,
+    .back-btn,
+    .flashcard-controls,
+    .quiz-controls {
+        display: none;
+    }
+    
+    .dashboard-card,
+    .quiz-container,
+    .notes-container,
+    .flashcard {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+    
+    .question-block {
+        break-inside: avoid;
+    }
+}
+
+/* Animation for smooth page transitions */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dashboard-card,
+.quiz-container,
+.notes-container,
+.flashcard-container {
+    animation: fadeIn 0.6s ease-out;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --border-color: #000;
+        --text-color: #000;
+    }
+    
+    .option {
+        border-width: 3px;
+    }
+    
+    .form-group input,
+    .form-group select {
+        border-width: 3px;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
