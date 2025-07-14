@@ -351,8 +351,10 @@ Requirements:
 - Use clear, ${level}-appropriate language
 - Make answers comprehensive but concise
 - Cover the full breadth of content including visual and mathematical elements
-
-Generate exactly 10 flashcards covering the most essential content from this material.`
+-Return only a valid JSON array.
+-Do not include any Markdown code fences, explanations, or extra text.
+-Output must start directly with '[' and end with ']'.
+-Generate exactly 10 flashcards covering the most essential content from this material.`
                         }
                     ]
                 }, {
