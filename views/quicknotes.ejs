@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,69 +11,311 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/style.css">
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-<script>
-window.MathJax = {
-  tex: {
-    // Handle multiple delimiter formats that Perplexity might use
-    inlineMath: [
-      ['$', '$'], 
-      ['\\(', '\\)'],
-      ['//', '//']  // Handle Perplexity's inconsistent formatting
-    ],
-    displayMath: [
-      ['$$', '$$'], 
-      ['\\[', '\\]'],
-      ['\\\\', '\\\\']  // Handle another inconsistent format
-    ],
-    // Process escaped delimiters
-    processEscapes: true,
-    // Handle errors gracefully
-    processEnvironments: true,
-    // Common mathematical macros
-    macros: {
-      RR: '{\\mathbb{R}}',
-      ZZ: '{\\mathbb{Z}}',
-      NN: '{\\mathbb{N}}',
-      QQ: '{\\mathbb{Q}}',
-      CC: '{\\mathbb{C}}'
-    }
-  },
-  options: {
-    // Re-render when content changes (useful for dynamic content)
-    renderActions: {
-      addMenu: []
-    }
-  },
-  startup: {
-    // Render when page loads
-    ready: () => {
-      MathJax.startup.defaultReady();
-      MathJax.startup.promise.then(() => {
-        console.log('MathJax initial typesetting complete');
-      });
-    }
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+    window.MathJax = {
+      tex: {
+        // Handle multiple delimiter formats that Perplexity might use
+        inlineMath: [
+          ['$', '$'], 
+          ['\\(', '\\)'],
+          ['//', '//']  // Handle Perplexity's inconsistent formatting
+        ],
+        displayMath: [
+          ['$$', '$$'], 
+          ['\\[', '\\]'],
+          ['\\\\', '\\\\']  // Handle another inconsistent format
+        ],
+        // Process escaped delimiters
+        processEscapes: true,
+        // Handle errors gracefully
+        processEnvironments: true,
+        // Common mathematical macros
+        macros: {
+          RR: '{\\mathbb{R}}',
+          ZZ: '{\\mathbb{Z}}',
+          NN: '{\\mathbb{N}}',
+          QQ: '{\\mathbb{Q}}',
+          CC: '{\\mathbb{C}}'
+        }
+      },
+      options: {
+        // Re-render when content changes (useful for dynamic content)
+        renderActions: {
+          addMenu: []
+        }
+      },
+      startup: {
+        // Render when page loads
+        ready: () => {
+          MathJax.startup.defaultReady();
+          MathJax.startup.promise.then(() => {
+            console.log('MathJax initial typesetting complete');
+          });
+        }
+      }
+    };
+    </script>
+    <style>
+      .math-equation { 
+        color: #d63384;
+        font-weight: 500;
+      }
+      
+      /* Style for display math */
+      mjx-container[display="true"] {
+        margin: 1em 0;
+        text-align: center;
+      }
+      
+      /* Style for inline math */
+      mjx-container[display="false"] {
+        display: inline-block;
+        margin: 0 0.1em;
+      }
+
+      /* Enhanced Text Selection Popup - Bigger Version */
+.text-selection-popup {
+  position: absolute;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  z-index: 1000;
+  display: none;
+  min-width: 320px;
+  max-width: 350px;
+}
+
+.expansion-option {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  margin: 4px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.expansion-option:hover {
+  background: #f8f9fa;
+  color: var(--bs-primary);
+  transform: translateX(2px);
+}
+
+.expansion-option:active {
+  transform: translateX(1px);
+}
+
+.expansion-option i {
+  margin-right: 12px;
+  font-size: 1rem;
+  width: 20px;
+  text-align: center;
+}
+
+/* Add subtle animations */
+.text-selection-popup {
+  animation: popupFadeIn 0.2s ease-out;
+}
+
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
   }
-};
-</script>
-<style>
-  .math-equation { 
-    color: #d63384;
-    font-weight: 500;
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
-  
-  /* Style for display math */
-  mjx-container[display="true"] {
-    margin: 1em 0;
-    text-align: center;
-  }
-  
-  /* Style for inline math */
-  mjx-container[display="false"] {
-    display: inline-block;
-    margin: 0 0.1em;
-  }
-</style>
+}
+
+
+      /* Side Expansion Bubble */
+      .side-expansion-bubble {
+        position: fixed;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 12px;
+        padding: 16px;
+        width: 320px;
+        max-height: 400px;
+        overflow-y: auto;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        z-index: 1001;
+        display: none;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        right: 20px;
+        animation: slideIn 0.3s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .side-expansion-bubble::before {
+        content: '';
+        position: absolute;
+        left: -8px;
+        top: 20px;
+        width: 0;
+        height: 0;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        border-right: 8px solid white;
+      }
+
+      .side-expansion-bubble::after {
+        content: '';
+        position: absolute;
+        left: -9px;
+        top: 20px;
+        width: 0;
+        height: 0;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        border-right: 8px solid #dee2e6;
+      }
+
+      .side-expansion-bubble .bubble-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e9ecef;
+      }
+
+      .side-expansion-bubble .bubble-title {
+        font-weight: 600;
+        color: var(--bs-primary);
+        font-size: 1rem;
+        margin: 0;
+        flex-grow: 1;
+      }
+
+      .side-expansion-bubble .close-bubble {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        color: #6c757d;
+        padding: 0;
+        margin-left: 10px;
+        line-height: 1;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+      }
+
+      .side-expansion-bubble .close-bubble:hover {
+        background: #f8f9fa;
+        color: #dc3545;
+      }
+
+      .side-expansion-bubble .bubble-content {
+        color: #495057;
+      }
+
+      .side-expansion-bubble .bubble-content h6 {
+        margin: 0 0 8px 0;
+        color: var(--bs-primary);
+        font-size: 0.95rem;
+      }
+
+      .side-expansion-bubble .bubble-content p {
+        margin: 0 0 8px 0;
+        line-height: 1.5;
+      }
+
+      .side-expansion-bubble .bubble-content ul {
+        margin: 8px 0;
+        padding-left: 18px;
+      }
+
+      .side-expansion-bubble .bubble-content li {
+        margin: 4px 0;
+        font-size: 0.85rem;
+        line-height: 1.4;
+      }
+
+      .side-expansion-bubble .bubble-content strong {
+        color: var(--bs-primary);
+      }
+
+      .expansion-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        color: #6c757d;
+        font-size: 0.9rem;
+      }
+
+      .selected-text-highlight {
+        background: #fff3cd;
+        border-radius: 3px;
+        padding: 2px 4px;
+        box-shadow: 0 0 0 1px #ffeaa7;
+      }
+
+      .selected-text-preview {
+        background: #f8f9fa;
+        padding: 8px 12px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        border-left: 3px solid var(--bs-primary);
+        font-size: 0.85rem;
+        font-style: italic;
+        color: #6c757d;
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 1200px) {
+        .side-expansion-bubble {
+          width: 280px;
+          right: 10px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .side-expansion-bubble {
+          width: 90%;
+          right: 5%;
+          left: 5%;
+          max-width: none;
+        }
+        
+        .side-expansion-bubble::before,
+        .side-expansion-bubble::after {
+          display: none;
+        }
+      }
+
+      /* Notes container positioning */
+      .notes-container-wrapper {
+        position: relative;
+      }
+    </style>
 </head>
 <body class="bg-gradient-primary">
     <div class="container-fluid min-vh-100 py-4">
@@ -106,36 +347,39 @@ window.MathJax = {
                         </p>
                     </div>
 
-                    <!-- Notes Content Card -->
-                    <div class="card border-0 shadow-lg rounded-4">
-                        <div class="card-header bg-white border-0 py-4">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <div class="d-flex align-items-center">
-                                    <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
-                                        <i class="bi bi-book text-primary fs-5"></i>
+                    <!-- Notes Container Wrapper -->
+                    <div class="notes-container-wrapper">
+                        <!-- Notes Content Card -->
+                        <div class="card border-0 shadow-lg rounded-4" id="notes-container">
+                            <div class="card-header bg-white border-0 py-4">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                            <i class="bi bi-book text-primary fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="card-title mb-1 text-dark fw-semibold">Study Notes</h5>
+                                            <small class="text-muted">Comprehensive learning material</small>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h5 class="card-title mb-1 text-dark fw-semibold">Study Notes</h5>
-                                        <small class="text-muted">Comprehensive learning material</small>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="window.print()">
+                                            <i class="bi bi-printer me-1"></i>
+                                            Print
+                                        </button>
+                                        <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="copyToClipboard()">
+                                            <i class="bi bi-clipboard me-1"></i>
+                                            Copy
+                                        </button>
                                     </div>
-                                </div>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="window.print()">
-                                        <i class="bi bi-printer me-1"></i>
-                                        Print
-                                    </button>
-                                    <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="copyToClipboard()">
-                                        <i class="bi bi-clipboard me-1"></i>
-                                        Copy
-                                    </button>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="card-body p-5">
-                            <div class="notes-content">
-                                <div class="notes-text lh-lg">
-                                    <%- content %>
+                            
+                            <div class="card-body p-5">
+                                <div class="notes-content">
+                                    <div class="notes-text lh-lg" id="notes-text">
+                                        <%- content %>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -161,7 +405,7 @@ window.MathJax = {
                     <div class="text-center mt-4">
                         <small class="text-white-50">
                             <i class="bi bi-lightbulb me-1"></i>
-                            Tip: Review these notes regularly for better retention
+                            Tip: Highlight any text for quick explanations in the side panel
                         </small>
                     </div>
 
@@ -170,15 +414,243 @@ window.MathJax = {
         </div>
     </div>
 
+    <!-- Text Selection Popup -->
+    <div id="text-selection-popup" class="text-selection-popup">
+        <button class="expansion-option" onclick="expandText('explain')">
+            <i class="bi bi-chat-dots"></i>
+            Explain
+        </button>
+        <button class="expansion-option" onclick="expandText('examples')">
+            <i class="bi bi-lightbulb"></i>
+            Examples
+        </button>
+        <button class="expansion-option" onclick="expandText('simplify')">
+            <i class="bi bi-arrow-down-circle"></i>
+            Simplify
+        </button>
+        <button class="expansion-option" onclick="expandText('context')">
+            <i class="bi bi-info-circle"></i>
+            Context
+        </button>
+    </div>
+
+    <!-- Side Expansion Bubble -->
+    <div id="side-expansion-bubble" class="side-expansion-bubble">
+        <div class="bubble-header">
+            <h6 class="bubble-title" id="bubble-title">Explanation</h6>
+            <button class="close-bubble" onclick="closeSideBubble()">×</button>
+        </div>
+        <div class="selected-text-preview" id="selected-text-preview">
+            <!-- Selected text will be shown here -->
+        </div>
+        <div class="bubble-content" id="bubble-content">
+            <!-- Content will be populated here -->
+        </div>
+    </div>
+
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Custom JavaScript for functionality -->
     <script>
+        let selectedText = '';
+        let currentExpansionType = '';
+        let selectionPosition = { x: 0, y: 0 };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const notesText = document.getElementById('notes-text');
+            const popup = document.getElementById('text-selection-popup');
+            const sideBubble = document.getElementById('side-expansion-bubble');
+
+            // Handle text selection
+            notesText.addEventListener('mouseup', function(e) {
+                const selection = window.getSelection();
+                const text = selection.toString().trim();
+                
+                if (text.length > 0) {
+                    selectedText = text;
+                    const range = selection.getRangeAt(0);
+                    const rect = range.getBoundingClientRect();
+                    selectionPosition = { 
+                        x: e.pageX, 
+                        y: e.pageY,
+                        selectionTop: rect.top + window.scrollY,
+                        selectionHeight: rect.height
+                    };
+                    showSelectionPopup(e.pageX, e.pageY);
+                } else {
+                    hideSelectionPopup();
+                }
+            });
+
+            // Hide popup when clicking elsewhere
+            document.addEventListener('click', function(e) {
+                if (!popup.contains(e.target) && !notesText.contains(e.target) && !sideBubble.contains(e.target)) {
+                    hideSelectionPopup();
+                    closeSideBubble();
+                }
+            });
+
+            // Hide popup on scroll
+            window.addEventListener('scroll', function() {
+                hideSelectionPopup();
+                updateBubblePosition();
+            });
+
+            // Update bubble position on window resize
+            window.addEventListener('resize', updateBubblePosition);
+        });
+
+        function showSelectionPopup(x, y) {
+            const popup = document.getElementById('text-selection-popup');
+            
+            // Position popup near cursor
+            let left = x - 100;
+            let top = y - 50;
+            
+            // Keep popup in viewport
+            if (left < 10) left = 10;
+            if (left + 200 > window.innerWidth - 10) left = window.innerWidth - 210;
+            if (top < 10) top = y + 10;
+            
+            popup.style.left = left + 'px';
+            popup.style.top = top + 'px';
+            popup.style.display = 'block';
+        }
+
+        function hideSelectionPopup() {
+            document.getElementById('text-selection-popup').style.display = 'none';
+        }
+
+        function updateBubblePosition() {
+            const bubble = document.getElementById('side-expansion-bubble');
+            if (bubble.style.display === 'block' && selectionPosition.selectionTop) {
+                // Position bubble at the same height as the selected text
+                let top = selectionPosition.selectionTop - window.scrollY;
+                
+                // Ensure bubble stays within viewport
+                const bubbleHeight = bubble.offsetHeight;
+                const viewportHeight = window.innerHeight;
+                
+                if (top + bubbleHeight > viewportHeight - 20) {
+                    top = viewportHeight - bubbleHeight - 20;
+                }
+                if (top < 20) {
+                    top = 20;
+                }
+                
+                bubble.style.top = top + 'px';
+            }
+        }
+
+        async function expandText(type) {
+            if (!selectedText) return;
+
+            currentExpansionType = type;
+            hideSelectionPopup();
+            
+            // Show side bubble
+            showSideBubble(type);
+            
+            // Show loading in bubble
+            document.getElementById('bubble-content').innerHTML = `
+                <div class="expansion-loading">
+                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                    Loading...
+                </div>
+            `;
+
+            try {
+                const expandedContent = await generateExpansion(selectedText, type);
+                displayExpansionInSideBubble(expandedContent, type);
+            } catch (error) {
+                console.error('Error expanding text:', error);
+                document.getElementById('bubble-content').innerHTML = `
+                    <div class="text-danger">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Failed to load explanation
+                    </div>
+                `;
+            }
+        }
+
+        function showSideBubble(type) {
+            const bubble = document.getElementById('side-expansion-bubble');
+            const titles = {
+                'explain': 'Explanation',
+                'examples': 'Examples',
+                'simplify': 'Simplified',
+                'context': 'Context'
+            };
+
+            // Set title and selected text preview
+            document.getElementById('bubble-title').textContent = titles[type];
+            document.getElementById('selected-text-preview').innerHTML = `
+                <strong>Selected:</strong> "${selectedText}"
+            `;
+            
+            // Position bubble at selection height
+            let top = selectionPosition.selectionTop - window.scrollY;
+            
+            // Ensure bubble stays within viewport
+            const viewportHeight = window.innerHeight;
+            if (top + 400 > viewportHeight - 20) {
+                top = viewportHeight - 420;
+            }
+            if (top < 20) {
+                top = 20;
+            }
+            
+            bubble.style.top = top + 'px';
+            bubble.style.display = 'block';
+        }
+
+        function closeSideBubble() {
+            document.getElementById('side-expansion-bubble').style.display = 'none';
+        }
+
+        async function generateExpansion(text, type) {
+            const prompts = {
+                'explain': `Briefly explain: "${text}". Give a concise definition and key points in 2-3 sentences.`,
+                'examples': `Provide 2-3 quick examples of: "${text}". Keep it short and practical.`,
+                'simplify': `Simplify: "${text}". Explain in simple terms in 1-2 sentences.`,
+                'context': `Provide brief context for: "${text}". Explain why it's important in 2-3 sentences.`
+            };
+
+            const response = await fetch('/api/expand-text', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    text: text,
+                    type: type,
+                    prompt: prompts[type],
+                    topic: '<%= topic %>',
+                    gradeLevel: '<%= gradeLevel %>'
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to generate expansion');
+            }
+
+            const data = await response.json();
+            return data.expansion;
+        }
+
+        function displayExpansionInSideBubble(content, type) {
+            document.getElementById('bubble-content').innerHTML = content;
+
+            // Re-render MathJax if present
+            if (window.MathJax) {
+                MathJax.typesetPromise([document.getElementById('bubble-content')]);
+            }
+        }
+
         function copyToClipboard() {
             const notesText = document.querySelector('.notes-text').innerText;
             navigator.clipboard.writeText(notesText).then(() => {
-                // Create toast notification
                 showToast('Notes copied to clipboard!');
             }).catch(err => {
                 console.error('Failed to copy: ', err);
@@ -187,12 +659,10 @@ window.MathJax = {
         }
 
         function generateMoreNotes() {
-            // You can implement this to redirect back to dashboard with the same topic
             window.location.href = '/?topic=<%= encodeURIComponent(topic) %>&gradeLevel=<%= gradeLevel %>';
         }
 
         function showToast(message, type = 'success') {
-            // Create a simple toast notification
             const toastContainer = document.getElementById('toast-container') || createToastContainer();
             const toast = document.createElement('div');
             toast.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show position-fixed`;
@@ -203,7 +673,6 @@ window.MathJax = {
             `;
             toastContainer.appendChild(toast);
             
-            // Auto remove after 3 seconds
             setTimeout(() => {
                 if (toast.parentNode) {
                     toast.remove();
@@ -225,6 +694,7 @@ window.MathJax = {
             font-size: 1.1rem;
             line-height: 1.8;
             color: #2d3748;
+            user-select: text;
         }
 
         /* Enhanced typography for notes content */
@@ -330,7 +800,7 @@ window.MathJax = {
                 background: white !important;
             }
             
-            .btn, .text-white-50, .bg-gradient-primary {
+            .btn, .text-white-50, .bg-gradient-primary, .side-expansion-bubble {
                 display: none !important;
             }
             
@@ -344,7 +814,6 @@ window.MathJax = {
             }
         }
 
-        /* Responsive enhancements */
         @media (max-width: 768px) {
             .card-body {
                 padding: 2rem !important;
@@ -359,7 +828,6 @@ window.MathJax = {
             .notes-text h3 { font-size: 1.3rem; }
         }
 
-        /* Smooth animations */
         .card {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
