@@ -322,51 +322,44 @@ Grade Level: ${level}`
                 return res.status(400).send("PDF content appears to be empty or too short. Please ensure the PDF contains readable text.");
             }
             
-            if (type === "quicknotes") {
-                const response = await axios.post("https://api.perplexity.ai/chat/completions", {
-                    model: "sonar-pro",
-                    messages: [
-                        {
-                            "role": "system",
-                            "content": "You are an expert educator specializing in analyzing comprehensive academic course materials. The content provided has been extracted using advanced parsing that captures visual elements, mathematical notation, and structured data. Transform this rich content into well-organized study notes. ALL mathematical expressions MUST use proper notation enclosed in $$ (e.g., $$F = ma$$)"
-                        },
-                        {
-                            "role": "user",
-                            "content": `Transform the following comprehensive course material into detailed and extremely thorough study notes for ${level} level students. This content includes properly extracted text, mathematical formulas, table data, and descriptions of visual elements.
+if (type === "quicknotes") {
+    const response = await axios.post("https://api.perplexity.ai/chat/completions", {
+        model: "sonar-pro",
+        messages: [
+            {
+                "role": "system",
+                "content": "You are an expert educator specializing in analyzing comprehensive academic course materials. Transform content into well-organized study notes with HTML formatting. ALL mathematical expressions MUST use proper notation enclosed in $$ (e.g., $$F = ma$$)"
+            },
+            {
+                "role": "user",
+                "content": `Transform the following comprehensive course material into detailed study notes for ${level} level students:
 
 COMPREHENSIVE COURSE MATERIAL:
 ${extractedText}
 
 Create study notes with these requirements:
-- Start with a clear overview/definition section
-- Use clear headings and subheadings to organize concepts
-- Include bullet points for key concepts and important details
-- Preserve and properly format any mathematical formulas or equations using $$...$$ notation
-- Include information from tables and charts mentioned in the content
-- Reference visual elements (graphs, diagrams) with proper context
-- Add explanatory context to connect different sections
+- Use HTML formatting: <h2>, <h3>, <p>, <ul>, <li>, <strong>
+- Preserve mathematical formulas in $$...$$ notation
 - Structure content logically for exam preparation
-- Use ${level}-appropriate language and explanations
-- Focus on the most important concepts for understanding and retention
 - ALL mathematical expressions MUST use proper notation enclosed in $$
 
-Format: Use markdown formatting with proper headers, bullet points, and emphasis.`
-                        }
-                    ]
-                }, {
-                    headers: {
-                        Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`
-                    }
-                });
-                
-                const processedContent = processMathContent(response.data.choices[0].message.content);
-                
-                res.render("quicknotes.ejs", {
-                    topic: "Course Material Analysis",
-                    gradeLevel: level,
-                    content: marked(processedContent)
-                });
+Format: Use HTML formatting with proper tags.`
             }
+        ]
+    }, {
+        headers: {
+            Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`
+        }
+    });
+    
+    // Remove both processMathContent() and marked() processing
+    res.render("quicknotes.ejs", {
+        topic: "Course Material Analysis",
+        gradeLevel: level,
+        content: response.data.choices[0].message.content  // Direct content like flashcards
+    });
+}
+
             else if (type === "flashcards") {
                 const response = await axios.post("https://api.perplexity.ai/chat/completions", {
                     "model": "sonar-pro",
