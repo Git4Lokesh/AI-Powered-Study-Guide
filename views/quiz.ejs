@@ -10,6 +10,70 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/style.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+window.MathJax = {
+  tex: {
+    // Handle multiple delimiter formats that Perplexity might use
+    inlineMath: [
+      ['$', '$'], 
+      ['\\(', '\\)'],
+      ['//', '//']  // Handle Perplexity's inconsistent formatting
+    ],
+    displayMath: [
+      ['$$', '$$'], 
+      ['\\[', '\\]'],
+      ['\\\\', '\\\\']  // Handle another inconsistent format
+    ],
+    // Process escaped delimiters
+    processEscapes: true,
+    // Handle errors gracefully
+    processEnvironments: true,
+    // Common mathematical macros
+    macros: {
+      RR: '{\\mathbb{R}}',
+      ZZ: '{\\mathbb{Z}}',
+      NN: '{\\mathbb{N}}',
+      QQ: '{\\mathbb{Q}}',
+      CC: '{\\mathbb{C}}'
+    }
+  },
+  options: {
+    // Re-render when content changes (useful for dynamic content)
+    renderActions: {
+      addMenu: []
+    }
+  },
+  startup: {
+    // Render when page loads
+    ready: () => {
+      MathJax.startup.defaultReady();
+      MathJax.startup.promise.then(() => {
+        console.log('MathJax initial typesetting complete');
+      });
+    }
+  }
+};
+</script>
+<style>
+  .math-equation { 
+    color: #d63384;
+    font-weight: 500;
+  }
+  
+  /* Style for display math */
+  mjx-container[display="true"] {
+    margin: 1em 0;
+    text-align: center;
+  }
+  
+  /* Style for inline math */
+  mjx-container[display="false"] {
+    display: inline-block;
+    margin: 0 0.1em;
+  }
+</style>
 </head>
 <body class="bg-gradient-primary">
     <div class="container-fluid py-4">
