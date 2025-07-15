@@ -18,6 +18,7 @@ marked.setOptions({
 });
 
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 app.use(express.static("public"));
 app.set('view engine', 'ejs');
 app.set('views', './views');
@@ -322,7 +323,7 @@ Grade Level: ${level}`
                 return res.status(400).send("PDF content appears to be empty or too short. Please ensure the PDF contains readable text.");
             }
             
-if (type === "quicknotes") {
+            if (type === "quicknotes") {
     const response = await axios.post("https://api.perplexity.ai/chat/completions", {
         model: "sonar-pro",
         messages: [
@@ -594,3 +595,53 @@ IMPORTANT: Format your response in proper HTML with:
         performanceAnalysis: processedAnalysis
     })
 })
+app.post('/api/expand-text', async (req, res) => {
+    try {
+        const { text, type, prompt, topic, gradeLevel } = req.body;
+        
+        const response = await axios.post("https://api.perplexity.ai/chat/completions", {
+            model: "sonar",
+            messages: [
+                {
+                    role: "system",
+                    content: "You are an expert educator providing detailed explanations for study materials. Use proper LaTeX formatting for mathematical expressions."
+                },
+                {
+                    role: "user",
+                    content: `${prompt}
+
+Context: This is from study notes about "${topic}" for ${gradeLevel} level students from a previous prompt, you have to provide additional explanation.
+
+FORMATTING REQUIREMENTS: 
+-RETURN HTML FORMATTED CONTENT (use <p>, <strong>, <ul> tags and etcetera)
+- Use LaTeX notation for math : $$ delimiters
+-Keep responses concise
+-Use HTML formatting for emphasis and structure
+-No markdown formatting,only HTML tags
+
+Please provide a comprehensive response that:
+- Is appropriate for ${gradeLevel} level understanding
+- Uses proper formatting including LaTeX for mathematical expressions surrounded by $$.
+- Provides clear, educational explanations
+- Includes relevant examples where helpful
+- As this is further context, be extremely concise and quick to the point. Should not exceed 100 words.
+- Do not delve into irrelevant topics, do exactly what is needed.
+
+Text to expand: "${text}"`
+                }
+            ]
+        }, {
+            headers: {
+                Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`
+            }
+        });
+
+        const expansion = response.data.choices[0].message.content;
+        
+        res.json({ expansion });
+    } catch (error) {
+        console.error('Text expansion error:', error);
+        res.status(500).json({ error: 'Failed to generate expansion' });
+    }
+});
+
