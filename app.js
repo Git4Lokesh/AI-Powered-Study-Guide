@@ -8,9 +8,14 @@ import multer from 'multer';
 import FormData from 'form-data';
 dotenv.config();
 
-
 const app = express();
 const port = 3000;
+
+marked.setOptions({
+    breaks: true,
+    gfm: true,
+    sanitize: true
+});
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -20,7 +25,7 @@ app.set('views', './views');
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-        fileSize: 10 * 1024 * 1024 // 10MB limit
+        fileSize: 10 * 1024 * 1024 
     },
     fileFilter: (req, file, cb) => {
         if (file.mimetype === 'application/pdf') {
@@ -37,6 +42,31 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: false }
 }));
+
+function processMathContent(content) {
+    let processedContent = content;
+    
+    processedContent = processedContent.replace(/\$\$(.*?)\$\$/g, (match, equation) => {
+        return `<span class="math-equation">${equation.trim()}</span>`;
+    });
+    
+    processedContent = processedContent.replace(/\\\\(.*?)\\\\/g, (match, equation) => {
+        return `<span class="math-equation">${equation.trim()}</span>`;
+    });
+    processedContent = processedContent.replace(/\/\/(.*?)\/\//g, (match, equation) => {
+        return `<span class="math-equation">${equation.trim()}</span>`;
+    });
+    
+    processedContent = processedContent.replace(/\\\((.*?)\\\)/g, (match, equation) => {
+        return `<span class="math-equation">${equation.trim()}</span>`;
+    });
+    processedContent = processedContent.replace(/\\\[(.*?)\\\]/g, (match, equation) => {
+        return `<span class="math-equation">${equation.trim()}</span>`;
+    });
+    
+    return processedContent;
+}
+
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
@@ -62,48 +92,52 @@ app.post("/generate", upload.single('document'), async (req, res) => {
         }
         
         if (type === "quicknotes") {
-            try {
-                const response = await axios.post("https://api.perplexity.ai/chat/completions", {
-                    model: "sonar-pro",
-                    messages: [
-                        {
-                            "role": "system",
-                            "content": "You are an expert educator. Create study materials in a direct, textbook-like format. Never show your research process or mention search results. Start directly with the educational content."
-                        },
-                        {
-                            "role": "user",
-                            "content": `Write extremely thorough study notes on ${topic} for ${level} level students. The student should be able to revise this for exams.
+    try {
+        const response = await axios.post("https://api.perplexity.ai/chat/completions", {
+            model: "sonar-pro",
+            messages: [
+                {
+                    "role": "system",
+                    "content": "You are an expert educator. Create study materials in HTML format with proper tags. Never show your research process or mention search results. Start directly with the educational content. For ALL mathematical expressions, use proper notation enclosed in $$ (e.g., $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$)"
+                },
+                {
+                    "role": "user",
+                    "content": `Write extremely thorough study notes on ${topic} for ${level} level students. The student should be able to revise this for exams.
 
 Format Requirements:
 - Start with a clear definition
-- Use headings and subheadings
-- Include bullet points for key concepts
+- Use HTML tags: <h1>, <h2>, <h3> for headings
+- Use <strong> for bold, <em> for italic
+- Use <p> for paragraphs and <br> for line breaks
+- Use <ul><li> for bullet points
 - Add practical examples
 - No meta-commentary about sources
 - No phrases like "based on the search results"
-- If mathematical in nature, sprinkle in example numericals here and there
+- If mathematical in nature, include example problems with solutions formatted in $$...$$ notation
+- ALL mathematical expressions MUST use proper notation enclosed in $$ (e.g., $$E = mc^2$$)
 
 Topic: ${topic}
 Level: ${level}`
-                        }
-                    ]
-                }, {
-                    headers: {
-                        Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`
-                    }
-                });
-                
-                res.render("quicknotes.ejs", {
-                    topic: topic,
-                    gradeLevel: level,
-                    content: marked(response.data.choices[0].message.content)
-                });
-                
-            } catch (error) {
-                console.error("Quick notes error:", error.message);
-                res.status(500).send("Failed to generate notes. Please try again.");
+                }
+            ]
+        }, {
+            headers: {
+                Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`
             }
-        }
+        });
+        
+        res.render("quicknotes.ejs", {
+            topic: topic,
+            gradeLevel: level,
+            content: response.data.choices[0].message.content
+        });
+        
+    } catch (error) {
+        console.error("Quick notes error:", error.message);
+        res.status(500).send("Failed to generate notes. Please try again.");
+    }
+}
+
         else if (type === "flashcards") {
             try {
                 const response = await axios.post("https://api.perplexity.ai/chat/completions", {
@@ -111,12 +145,17 @@ Level: ${level}`
                     "messages": [
                         {
                             "role": "system",
-                            "content": "Create flashcards in JSON format. Return only a JSON array of objects with 'question' and 'answer' properties."
+                            "content": "Create flashcards in JSON format. Return only a JSON array of objects with 'question' and 'answer' properties. ALL mathematical expressions MUST use proper notation enclosed in $$ (e.g., $$\\frac{1}{2}$$)"
                         },
                         {
                             "role": "user",
-                            "content": `Generate 10 flashcards for ${topic} at ${level} school level. Format as JSON array: [{"question": "...", "answer": "..."}].- No meta-commentary about sources
-- No phrases like "based on the search results"`
+                            "content": `Generate 10 flashcards for ${topic} at ${level} school level. Format as JSON array: [{"question": "...", "answer": "..."}].
+
+Requirements:
+- No meta-commentary about sources
+- No phrases like "based on the search results"
+- Include mathematical concepts in $$...$$ notation where needed
+- ALL mathematical expressions MUST use proper notation enclosed in $$`
                         }
                     ]
                 }, {
@@ -146,42 +185,42 @@ Level: ${level}`
             }
         } 
         else {
-            // Quiz logic for topic input
             try {
                 const response = await axios.post("https://api.perplexity.ai/chat/completions", {
                     model: "sonar-pro",
                     messages: [
                         {
                             "role": "system",
-                            "content": "You are an expert educational content creator. Generate quiz questions in strict JSON format. Return ONLY a valid JSON array with no additional text, explanations, or formatting. Each question must have exactly 4 distinct, plausible options with one clearly correct answer."
+                            "content": "You are an expert educational content creator. Generate quiz questions in strict JSON format. Return ONLY a valid JSON array with no additional text, explanations, or formatting. Each question must have exactly 4 distinct, plausible options with one clearly correct answer. ALL mathematical expressions MUST use proper notation enclosed in $$ (e.g., $$x^2 + 5x + 6$$)"
                         },
                         {
                             "role": "user", 
                             "content": `Create a 10-question multiple choice quiz about ${topic} for ${level} school students.
 
-                            Requirements:
-                                - Format: JSON array only, no other text
-                                - Each question must have: question, option1, option2, option3, option4, answer
-                                - Answer field must specify which option is correct (e.g., "option2")
-                                - All options should be plausible but only one correct
-                                - Questions should test understanding, not just memorization
-                                - Use clear, grade-appropriate language
-                                - ONLY IF the topic is mathematical in nature or could have calculation based questions, sprinkle in 3-4 questions which involve calculations.
+Requirements:
+- Format: JSON array only, no other text
+- Each question must have: question, option1, option2, option3, option4, answer
+- Answer field must specify which option is correct (e.g., "option2")
+- All options should be plausible but only one correct
+- Questions should test understanding, not just memorization
+- Use clear, grade-appropriate language
+- ONLY IF the topic is mathematical in nature or could have calculation based questions, include 3-4 questions which involve calculations
+- ALL mathematical expressions MUST use proper notation enclosed in $$ (e.g., $$\\sqrt{25} = 5$$)
 
-                            Example format:
-                            [
-                                {
-                                    "question": "What is the main purpose of linear regression?",
-                                    "option1": "To create curved relationships between variables",
-                                    "option2": "To find the best straight line through data points", 
-                                    "option3": "To categorize data into groups",
-                                    "option4": "To remove outliers from datasets",
-                                    "answer": "option2"
-                                }
-                            ]
+Example format:
+[
+    {
+        "question": "What is the discriminant of the quadratic equation $$ax^2 + bx + c = 0$$?",
+        "option1": "$$b^2 - 4ac$$",
+        "option2": "$$-b \\pm \\sqrt{b^2 - 4ac}$$", 
+        "option3": "$$4ac - b^2$$",
+        "option4": "$$a^2 + b^2 + c^2$$",
+        "answer": "option1"
+    }
+]
 
-                            Topic: ${topic}
-                            Grade Level: ${level}`
+Topic: ${topic}
+Grade Level: ${level}`
                         }
                     ]
                 }, {
@@ -237,7 +276,6 @@ Level: ${level}`
             const jobId = uploadResponse.data.id;
             console.log("Upload successful, job ID:", jobId);
             
-
             let jobComplete = false;
             let attempts = 0;
             const maxAttempts = 30;
@@ -290,11 +328,11 @@ Level: ${level}`
                     messages: [
                         {
                             "role": "system",
-                            "content": "You are an expert educator specializing in analyzing comprehensive academic course materials. The content provided has been extracted using advanced parsing that captures visual elements, mathematical notation, and structured data. Transform this rich content into well-organized study notes."
+                            "content": "You are an expert educator specializing in analyzing comprehensive academic course materials. The content provided has been extracted using advanced parsing that captures visual elements, mathematical notation, and structured data. Transform this rich content into well-organized study notes. ALL mathematical expressions MUST use proper notation enclosed in $$ (e.g., $$F = ma$$)"
                         },
                         {
                             "role": "user",
-                            "content": `Transform the following comprehensive course material into detailed and extemely thorough study notes for ${level} level students. This content includes properly extracted text, mathematical formulas, table data, and descriptions of visual elements.
+                            "content": `Transform the following comprehensive course material into detailed and extremely thorough study notes for ${level} level students. This content includes properly extracted text, mathematical formulas, table data, and descriptions of visual elements.
 
 COMPREHENSIVE COURSE MATERIAL:
 ${extractedText}
@@ -303,13 +341,14 @@ Create study notes with these requirements:
 - Start with a clear overview/definition section
 - Use clear headings and subheadings to organize concepts
 - Include bullet points for key concepts and important details
-- Preserve and properly format any mathematical formulas or equations
+- Preserve and properly format any mathematical formulas or equations using $$...$$ notation
 - Include information from tables and charts mentioned in the content
 - Reference visual elements (graphs, diagrams) with proper context
 - Add explanatory context to connect different sections
 - Structure content logically for exam preparation
 - Use ${level}-appropriate language and explanations
 - Focus on the most important concepts for understanding and retention
+- ALL mathematical expressions MUST use proper notation enclosed in $$
 
 Format: Use markdown formatting with proper headers, bullet points, and emphasis.`
                         }
@@ -320,19 +359,21 @@ Format: Use markdown formatting with proper headers, bullet points, and emphasis
                     }
                 });
                 
+                const processedContent = processMathContent(response.data.choices[0].message.content);
+                
                 res.render("quicknotes.ejs", {
                     topic: "Course Material Analysis",
                     gradeLevel: level,
-                    content: marked(response.data.choices[0].message.content)
+                    content: marked(processedContent)
                 });
             }
             else if (type === "flashcards") {
                 const response = await axios.post("https://api.perplexity.ai/chat/completions", {
-                    "model": "sonar",
+                    "model": "sonar-pro",
                     "messages": [
                         {
                             "role": "system",
-                            "content": "You are an expert educator creating flashcards from comprehensive course material that includes properly extracted text, mathematical notation, table data, and visual element descriptions. Return only a JSON array of objects with 'question' and 'answer' properties."
+                            "content": "You are an expert educator creating flashcards from comprehensive course material that includes properly extracted text, mathematical notation, table data, and visual element descriptions. Return only a JSON array of objects with 'question' and 'answer' properties. ALL mathematical expressions MUST use proper notation enclosed in $$ (e.g., $$\\int x dx = \\frac{x^2}{2} + C$$)"
                         },
                         {
                             "role": "user",
@@ -351,10 +392,11 @@ Requirements:
 - Use clear, ${level}-appropriate language
 - Make answers comprehensive but concise
 - Cover the full breadth of content including visual and mathematical elements
--Return only a valid JSON array.
--Do not include any Markdown code fences, explanations, or extra text.
--Output must start directly with '[' and end with ']'.
--Generate exactly 10 flashcards covering the most essential content from this material.`
+- Return only a valid JSON array.
+- Do not include any Markdown code fences, explanations, or extra text.
+- Output must start directly with '[' and end with ']'.
+- Generate exactly 10 flashcards covering the most essential content from this material.
+- ALL mathematical expressions MUST use proper notation enclosed in $$`
                         }
                     ]
                 }, {
@@ -380,11 +422,11 @@ Requirements:
             }
             else {
                 const response = await axios.post("https://api.perplexity.ai/chat/completions", {
-                    model: "sonar",
+                    model: "sonar-pro",
                     messages: [
                         {
                             "role": "system",
-                            "content": "You are an expert educational assessment creator analyzing comprehensive course material with properly extracted mathematical notation, table data, and visual element descriptions. Generate quiz questions in strict JSON format. Return ONLY a valid JSON array with no additional text, explanations, or formatting."
+                            "content": "You are an expert educational assessment creator analyzing comprehensive course material with properly extracted mathematical notation, table data, and visual element descriptions. Generate quiz questions in strict JSON format. Return ONLY a valid JSON array with no additional text, explanations, or formatting. ALL mathematical expressions MUST use proper notation enclosed in $$ (e.g., $$y = mx + b$$)"
                         },
                         {
                             "role": "user", 
@@ -405,8 +447,8 @@ Requirements:
 - Test both factual recall and conceptual understanding
 - Use clear, ${level}-appropriate language
 - Cover different aspects of the comprehensive material provided
-
-Generate exactly 10 questions covering the essential content from this course material.`
+- ALL mathematical expressions MUST use proper notation enclosed in $$
+- Generate exactly 10 questions covering the essential content from this course material.`
                         }
                     ]
                 }, {
@@ -525,14 +567,15 @@ IMPORTANT: Format your response in proper HTML with:
 - Use <br> tags for line breaks where needed
 - Make it clean and well-structured for web display
 - Refer to the person as if you're talking to them, not as "the student".
-- Do NOT use Markdown syntax (##, -, **) - use actual HTML tags only`;
+- Do NOT use Markdown syntax (##, -, **) - use actual HTML tags only
+- If referencing mathematical concepts, use $$...$$ notation`;
 
     const analysis = await axios.post("https://api.perplexity.ai/chat/completions",{
         model:"sonar-pro",
         messages:[
             {
                 role:"system",
-                content:"You are an expert educator in "+req.session.topic+". Analyze quiz data and provide actiononable insights."
+                content:"You are an expert educator in "+req.session.topic+". Analyze quiz data and provide actionable insights. For mathematical expressions, use $$...$$ notation."
             },
             {
                 role:"user",
@@ -545,6 +588,9 @@ IMPORTANT: Format your response in proper HTML with:
         }
     })
     
+    // Process mathematical content in the analysis
+    const processedAnalysis = processMathContent(analysis.data.choices[0].message.content);
+    
     res.render("quiz.ejs",{
         topic:req.session.topic,
         gradeLevel:req.session.gradeLevel,
@@ -552,6 +598,6 @@ IMPORTANT: Format your response in proper HTML with:
         showResults:showResults,
         userAnswers:userAnswers,
         score:score,
-        performanceAnalysis: analysis.data.choices[0].message.content
+        performanceAnalysis: processedAnalysis
     })
 })
