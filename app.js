@@ -142,7 +142,7 @@ Level: ${level}`
         else if (type === "flashcards") {
             try {
                 const response = await axios.post("https://api.perplexity.ai/chat/completions", {
-                    "model": "sonar-pro",
+                    "model": "sonar",
                     "messages": [
                         {
                             "role": "system",
@@ -353,17 +353,16 @@ Format: Use HTML formatting with proper tags.`
         }
     });
     
-    // Remove both processMathContent() and marked() processing
     res.render("quicknotes.ejs", {
         topic: "Course Material Analysis",
         gradeLevel: level,
-        content: response.data.choices[0].message.content  // Direct content like flashcards
+        content: response.data.choices[0].message.content 
     });
 }
 
             else if (type === "flashcards") {
                 const response = await axios.post("https://api.perplexity.ai/chat/completions", {
-                    "model": "sonar-pro",
+                    "model": "sonar",
                     "messages": [
                         {
                             "role": "system",
@@ -582,7 +581,6 @@ IMPORTANT: Format your response in proper HTML with:
         }
     })
     
-    // Process mathematical content in the analysis
     const processedAnalysis = processMathContent(analysis.data.choices[0].message.content);
     
     res.render("quiz.ejs",{
@@ -597,7 +595,53 @@ IMPORTANT: Format your response in proper HTML with:
 })
 app.post('/api/expand-text', async (req, res) => {
     try {
-        const { text, type, prompt, topic, gradeLevel } = req.body;
+        const { text, type, prompt, topic, gradeLevel, customQuestion } = req.body;
+        
+        const isCustomQuestion = type === 'custom' && customQuestion;
+        
+        let finalPrompt;
+        
+        if (isCustomQuestion) {
+            finalPrompt = `Context: "${text}" from ${topic} study notes for ${gradeLevel} students.
+
+Student Question: "${customQuestion}"
+
+FORMATTING REQUIREMENTS: 
+-RETURN HTML FORMATTED CONTENT (use <p>, <strong>, <ul> tags and etcetera)
+- Use LaTeX notation for math : \\( \\) for inline, \\[ \\] for display
+-Keep responses concise
+-Use HTML formatting for emphasis and structure
+-No markdown formatting,only HTML tags
+
+Please provide a brief, HTML-formatted answer that:
+- Directly addresses the student's specific question
+- Uses the highlighted text as context
+- Is under 150 words
+- Uses LaTeX notation for math expressions
+- Provides clear, educational explanations relevant to ${gradeLevel} level`;
+        } else {
+            // Original pre-defined context prompt
+            finalPrompt = `${prompt}
+
+Context: This is from study notes about "${topic}" for ${gradeLevel} level students from a previous prompt, you have to provide additional explanation.
+
+FORMATTING REQUIREMENTS: 
+-RETURN HTML FORMATTED CONTENT (use <p>, <strong>, <ul> tags and etcetera)
+- Use LaTeX notation for math : \\( \\) for inline, \\[ \\] for display
+-Keep responses concise
+-Use HTML formatting for emphasis and structure
+-No markdown formatting,only HTML tags
+
+Please provide a comprehensive response that:
+- Is appropriate for ${gradeLevel} level understanding
+- Uses proper formatting including LaTeX for mathematical expressions
+- Provides clear, educational explanations
+- Includes relevant examples where helpful
+- As this is further context, be extremely concise and quick to the point. Should not exceed 100 words.
+- Do not delve into irrelevant topics, do exactly what is needed.
+
+Text to expand: "${text}"`;
+        }
         
         const response = await axios.post("https://api.perplexity.ai/chat/completions", {
             model: "sonar",
@@ -608,26 +652,7 @@ app.post('/api/expand-text', async (req, res) => {
                 },
                 {
                     role: "user",
-                    content: `${prompt}
-
-Context: This is from study notes about "${topic}" for ${gradeLevel} level students from a previous prompt, you have to provide additional explanation.
-
-FORMATTING REQUIREMENTS: 
--RETURN HTML FORMATTED CONTENT (use <p>, <strong>, <ul> tags and etcetera)
-- Use LaTeX notation for math : $$ delimiters
--Keep responses concise
--Use HTML formatting for emphasis and structure
--No markdown formatting,only HTML tags
-
-Please provide a comprehensive response that:
-- Is appropriate for ${gradeLevel} level understanding
-- Uses proper formatting including LaTeX for mathematical expressions surrounded by $$.
-- Provides clear, educational explanations
-- Includes relevant examples where helpful
-- As this is further context, be extremely concise and quick to the point. Should not exceed 100 words.
-- Do not delve into irrelevant topics, do exactly what is needed.
-
-Text to expand: "${text}"`
+                    content: finalPrompt
                 }
             ]
         }, {
@@ -637,11 +662,12 @@ Text to expand: "${text}"`
         });
 
         const expansion = response.data.choices[0].message.content;
-        
+        console.log(expansion);
         res.json({ expansion });
     } catch (error) {
         console.error('Text expansion error:', error);
         res.status(500).json({ error: 'Failed to generate expansion' });
     }
 });
+
 
