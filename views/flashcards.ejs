@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flash Cards - <%= topic %></title>
+    <title>Flashcards - <%= topic %></title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -11,77 +11,230 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/style.css">
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-<script>
-window.MathJax = {
-  tex: {
-    // Handle multiple delimiter formats that Perplexity might use
-    inlineMath: [
-      ['$', '$'], 
-      ['\\(', '\\)'],
-      ['//', '//']  // Handle Perplexity's inconsistent formatting
-    ],
-    displayMath: [
-      ['$$', '$$'], 
-      ['\\[', '\\]'],
-      ['\\\\', '\\\\']  // Handle another inconsistent format
-    ],
-    // Process escaped delimiters
-    processEscapes: true,
-    // Handle errors gracefully
-    processEnvironments: true,
-    // Common mathematical macros
-    macros: {
-      RR: '{\\mathbb{R}}',
-      ZZ: '{\\mathbb{Z}}',
-      NN: '{\\mathbb{N}}',
-      QQ: '{\\mathbb{Q}}',
-      CC: '{\\mathbb{C}}'
-    }
-  },
-  options: {
-    // Re-render when content changes (useful for dynamic content)
-    renderActions: {
-      addMenu: []
-    }
-  },
-  startup: {
-    // Render when page loads
-    ready: () => {
-      MathJax.startup.defaultReady();
-      MathJax.startup.promise.then(() => {
-        console.log('MathJax initial typesetting complete');
-      });
-    }
-  }
-};
-</script>
-<style>
-  .math-equation { 
-    color: #d63384;
-    font-weight: 500;
-  }
-  
-  /* Style for display math */
-  mjx-container[display="true"] {
-    margin: 1em 0;
-    text-align: center;
-  }
-  
-  /* Style for inline math */
-  mjx-container[display="false"] {
-    display: inline-block;
-    margin: 0 0.1em;
-  }
-</style>
-    <!-- Pre-calculate progress percentage to avoid CSS parsing issues -->
-    <% const progressPercentage = Math.round(((currentIndex + 1) / content.length) * 100); %>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true,
+        processEnvironments: true,
+        macros: {
+          RR: '{\\mathbb{R}}',
+          ZZ: '{\\mathbb{Z}}',
+          NN: '{\\mathbb{N}}',
+          QQ: '{\\mathbb{Q}}',
+          CC: '{\\mathbb{C}}'
+        }
+      }
+    };
+    </script>
+    <style>
+        /* Royal Dark Theme Variables */
+        :root {
+            --royal-purple: #7C3AED;
+            --royal-blue: #2563EB;
+            --royal-gold: #F59E0B;
+            --dark-bg: #0F172A;
+            --dark-card: #1E293B;
+            --dark-border: #334155;
+            --royal-gradient: linear-gradient(135deg, #0F172A 0%, #1E293B 25%, #312E81 50%, #7C3AED 100%);
+            --text-primary: #F8FAFC;
+            --text-secondary: #CBD5E1;
+            --text-muted: #94A3B8;
+        }
+
+        /* Text Selection Popup */
+        .text-selection-popup {
+            position: absolute;
+            background: var(--dark-card) !important;
+            border: 1px solid var(--royal-gold) !important;
+            border-radius: 12px !important;
+            padding: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
+            z-index: 1000;
+            display: none;
+            max-width: 250px;
+            backdrop-filter: blur(20px);
+        }
+
+        .expansion-option {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            margin: 2px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-size: 0.9rem;
+            color: var(--text-secondary) !important;
+        }
+
+        .expansion-option:hover {
+            background: rgba(124, 58, 237, 0.2) !important;
+            color: var(--royal-gold) !important;
+            transform: translateX(3px);
+        }
+
+        .expansion-option i {
+            margin-right: 8px;
+            font-size: 0.8rem;
+            color: var(--royal-gold) !important;
+        }
+
+        /* Expansion Bubble */
+        .expansion-bubble {
+            position: absolute;
+            background: var(--dark-card) !important;
+            border: 1px solid var(--royal-purple) !important;
+            border-radius: 16px !important;
+            padding: 16px 20px;
+            max-width: 350px;
+            min-width: 250px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3) !important;
+            z-index: 1001;
+            display: none;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            backdrop-filter: blur(20px);
+            color: var(--text-primary) !important;
+        }
+
+        .expansion-bubble::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 20px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 8px solid var(--dark-card) !important;
+        }
+
+        .expansion-bubble .close-bubble {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: var(--text-muted) !important;
+            padding: 0;
+            line-height: 1;
+            transition: all 0.3s ease;
+        }
+
+        .expansion-bubble .close-bubble:hover {
+            color: var(--royal-gold) !important;
+            transform: scale(1.2);
+        }
+
+        .expansion-bubble .bubble-content {
+            padding-right: 25px;
+            color: var(--text-primary) !important;
+        }
+
+        .expansion-bubble .bubble-content h6 {
+            margin: 0 0 10px 0;
+            color: var(--royal-gold) !important;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .expansion-bubble .bubble-content p {
+            margin: 0;
+            color: var(--text-secondary) !important;
+        }
+
+        .expansion-bubble .bubble-content ul {
+            margin: 8px 0 0 0;
+            padding-left: 18px;
+        }
+
+        .expansion-bubble .bubble-content li {
+            margin: 3px 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary) !important;
+        }
+
+        .expansion-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--text-muted) !important;
+            font-size: 0.95rem;
+        }
+
+        .selected-text-highlight {
+            background: rgba(245, 158, 11, 0.3) !important;
+            border-radius: 4px;
+            padding: 2px 4px;
+            box-shadow: 0 0 0 1px var(--royal-gold);
+        }
+
+        /* Flashcard specific styles */
+        .flashcard-container {
+            perspective: 1200px;
+            user-select: text;
+        }
+
+        .flashcard-content {
+            user-select: text;
+        }
+
+        .flashcard-content p, .flashcard-content div {
+            user-select: text;
+            color: var(--text-primary) !important;
+        }
+
+        /* Flashcard Animation */
+        .flashcard {
+            transition: all 0.4s ease;
+            transform-style: preserve-3d;
+        }
+
+        .flashcard:hover {
+            transform: translateY(-8px) rotateX(2deg);
+            box-shadow: 0 25px 50px rgba(124, 58, 237, 0.3) !important;
+        }
+    </style>
 </head>
 <body class="bg-gradient-primary">
-    <div class="container-fluid min-vh-100 py-4">
+    <!-- Fixed Progress Bar -->
+    <div class="fixed-progress-bar">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <i class="bi bi-card-text text-white me-2"></i>
+                    <span class="text-white fw-semibold">Flashcard Progress</span>
+                </div>
+                <div class="col">
+                    <div class="progress mx-3" style="height: 6px;">
+                        <div class="progress-bar bg-white" role="progressbar" style="width: <%= ((currentIndex + 1) / content.length) * 100 %>%" 
+                             aria-valuenow="<%= ((currentIndex + 1) / content.length) * 100 %>" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <span class="badge bg-white text-primary px-3 py-1 fw-semibold">
+                        <%= currentIndex + 1 %>/<%= content.length %>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid min-vh-100 py-4" style="padding-top: 80px !important;">
         <div class="container">
             <div class="row justify-content-center">
-                <div class="col-lg-8 col-xl-6">
+                <div class="col-lg-10 col-xl-8">
                     
                     <!-- Header Section -->
                     <div class="d-flex align-items-center justify-content-between mb-4">
@@ -90,15 +243,15 @@ window.MathJax = {
                             Back to Dashboard
                         </a>
                         <div class="text-end">
-                            <small class="text-white-50 d-block">Study Session</small>
+                            <small class="text-white-50 d-block">Study Materials</small>
                         </div>
                     </div>
 
                     <!-- Topic Header -->
-                    <div class="text-center mb-4">
+                    <div class="text-center mb-5">
                         <div class="d-inline-flex align-items-center bg-white bg-opacity-10 rounded-pill px-4 py-2 mb-3">
                             <i class="bi bi-card-text text-white me-2"></i>
-                            <span class="text-white fw-semibold">Flash Cards</span>
+                            <span class="text-white fw-semibold">Flashcards</span>
                         </div>
                         <h1 class="display-5 fw-bold text-white mb-2"><%= topic %></h1>
                         <p class="text-white-50 mb-0">
@@ -106,133 +259,109 @@ window.MathJax = {
                             Grade Level: <%= gradeLevel %>
                         </p>
                     </div>
-                    
 
-                    <!-- Flashcard Container -->
-                    <div class="flashcard-wrapper mb-4">
-                        <% if (showAnswer) { %>
-                            <!-- Answer Side -->
-                            <div class="card flashcard-main border-0 shadow-lg">
-                                <div class="card-body p-5 text-center d-flex flex-column answer-card">
-                                    <div class="mb-4">
-                                        <div class="d-inline-flex align-items-center bg-success bg-opacity-10 rounded-pill px-3 py-2 mb-3">
-                                            <i class="bi bi-check-circle text-success me-2"></i>
-                                            <span class="text-success fw-semibold">Answer</span>
+                    <!-- Flashcard Counter -->
+                    <div class="row justify-content-center mb-4">
+                        <div class="col-md-6 text-center">
+                            <div class="bg-white bg-opacity-10 rounded-pill px-4 py-2 d-inline-block">
+                                <span class="text-white fw-semibold">
+                                    Card <span id="current-card"><%= currentIndex + 1 %></span> of <%= content.length %>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Flashcard -->
+                    <div class="flashcard-container">
+                        <div class="card border-0 shadow-lg rounded-4 flashcard" style="height: 400px;">
+                            <div class="card-body d-flex flex-column justify-content-center align-items-center p-5">
+                                <div class="flashcard-content text-center w-100" id="flashcard-content">
+                                    <% if (!showAnswer) { %>
+                                        <div class="question-content">
+                                            <h4 class="mb-4 text-primary">Question</h4>
+                                            <div class="fs-5 lh-base">
+                                                <%- content[currentIndex].question %>
+                                            </div>
                                         </div>
-                                    </div>
-                                    
-                                    <div class="flex-grow-1 d-flex align-items-center justify-content-center">
-                                        <p class="fs-4 text-dark mb-0 lh-base">
-                                            <%= content[currentIndex].answer %>
-                                        </p>
-                                    </div>
-                                    
-                                    <div class="mt-4">
-                                        <form action="/flashcard" method="POST" class="card-form">
-                                            <input type="hidden" name="topic" value="<%= topic %>">
-                                            <input type="hidden" name="gradeLevel" value="<%= gradeLevel %>">
-                                            <input type="hidden" name="currentIndex" value="<%= currentIndex %>">
-                                            <input type="hidden" name="showAnswer" value="false">
-                                            <button type="submit" class="btn btn-primary btn-lg px-4 py-2 rounded-pill">
-                                                <i class="bi bi-question-circle me-2"></i>
-                                                Show Question
-                                            </button>
-                                        </form>
-                                    </div>
+                                    <% } else { %>
+                                        <div class="answer-content">
+                                            <h4 class="mb-4 text-success">Answer</h4>
+                                            <div class="fs-5 lh-base">
+                                                <%- content[currentIndex].answer %>
+                                            </div>
+                                        </div>
+                                    <% } %>
                                 </div>
                             </div>
-                        <% } else { %>
-                            <!-- Question Side -->
-                            <div class="card flashcard-main border-0 shadow-lg">
-                                <div class="card-body p-5 text-center d-flex flex-column question-card">
-                                    <div class="mb-4">
-                                        <div class="d-inline-flex align-items-center bg-primary bg-opacity-10 rounded-pill px-3 py-2 mb-3">
-                                            <i class="bi bi-question-circle text-primary me-2"></i>
-                                            <span class="text-primary fw-semibold">Question</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="flex-grow-1 d-flex align-items-center justify-content-center">
-                                        <p class="fs-4 text-dark mb-0 lh-base">
-                                            <%= content[currentIndex].question %>
-                                        </p>
-                                    </div>
-                                    
-                                    <div class="mt-4">
-                                        <form action="/flashcard" method="POST" class="card-form">
-                                            <input type="hidden" name="topic" value="<%= topic %>">
-                                            <input type="hidden" name="gradeLevel" value="<%= gradeLevel %>">
-                                            <input type="hidden" name="currentIndex" value="<%= currentIndex %>">
-                                            <input type="hidden" name="showAnswer" value="true">
-                                            <button type="submit" class="btn btn-success btn-lg px-4 py-2 rounded-pill">
-                                                <i class="bi bi-eye me-2"></i>
-                                                Show Answer
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        <% } %>
+                        </div>
                     </div>
 
                     <!-- Navigation Controls -->
-                    <div class="d-flex justify-content-between align-items-center gap-3">
-                        <!-- Previous Button -->
-                        <div class="flex-fill">
-                            <% if (currentIndex > 0) { %>
-                                <form action="/flashcard" method="POST" class="w-100">
-                                    <input type="hidden" name="topic" value="<%= topic %>">
-                                    <input type="hidden" name="gradeLevel" value="<%= gradeLevel %>">
-                                    <input type="hidden" name="currentIndex" value="<%= currentIndex - 1 %>">
+                    <div class="row justify-content-center mt-4">
+                        <div class="col-md-8">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <!-- Previous Button -->
+                                <form method="POST" action="/flashcard" class="d-inline">
+                                    <input type="hidden" name="currentIndex" value="<%= currentIndex > 0 ? currentIndex - 1 : content.length - 1 %>">
                                     <input type="hidden" name="showAnswer" value="false">
-                                    <button type="submit" class="btn btn-outline-light btn-lg w-100 py-3">
-                                        <i class="bi bi-chevron-left me-2"></i>
+                                    <button type="submit" class="btn btn-outline-light btn-lg rounded-pill px-4">
+                                        <i class="bi bi-arrow-left me-2"></i>
                                         Previous
                                     </button>
                                 </form>
-                            <% } else { %>
-                                <button class="btn btn-outline-light btn-lg w-100 py-3" disabled>
-                                    <i class="bi bi-chevron-left me-2"></i>
-                                    Previous
-                                </button>
-                            <% } %>
-                        </div>
 
-                        <!-- Card Counter (Mobile) -->
-                        <div class="d-flex align-items-center text-white d-md-none">
-                            <small class="fw-semibold">
-                                <%= currentIndex + 1 %>/<%= content.length %>
-                            </small>
-                        </div>
+                                <!-- Show Answer / Next Button -->
+                                <% if (!showAnswer) { %>
+                                    <form method="POST" action="/flashcard" class="d-inline">
+                                        <input type="hidden" name="currentIndex" value="<%= currentIndex %>">
+                                        <input type="hidden" name="showAnswer" value="true">
+                                        <button type="submit" class="btn btn-success btn-lg rounded-pill px-4">
+                                            <i class="bi bi-eye me-2"></i>
+                                            Show Answer
+                                        </button>
+                                    </form>
+                                <% } else { %>
+                                    <form method="POST" action="/flashcard" class="d-inline">
+                                        <input type="hidden" name="currentIndex" value="<%= currentIndex < content.length - 1 ? currentIndex + 1 : 0 %>">
+                                        <input type="hidden" name="showAnswer" value="false">
+                                        <button type="submit" class="btn btn-primary btn-lg rounded-pill px-4">
+                                            Next Card
+                                            <i class="bi bi-arrow-right ms-2"></i>
+                                        </button>
+                                    </form>
+                                <% } %>
 
-                        <!-- Next Button -->
-                        <div class="flex-fill">
-                            <% if (currentIndex < content.length - 1) { %>
-                                <form action="/flashcard" method="POST" class="w-100">
-                                    <input type="hidden" name="topic" value="<%= topic %>">
-                                    <input type="hidden" name="gradeLevel" value="<%= gradeLevel %>">
-                                    <input type="hidden" name="currentIndex" value="<%= currentIndex + 1 %>">
+                                <!-- Next Button -->
+                                <form method="POST" action="/flashcard" class="d-inline">
+                                    <input type="hidden" name="currentIndex" value="<%= currentIndex < content.length - 1 ? currentIndex + 1 : 0 %>">
                                     <input type="hidden" name="showAnswer" value="false">
-                                    <button type="submit" class="btn btn-outline-light btn-lg w-100 py-3">
+                                    <button type="submit" class="btn btn-outline-light btn-lg rounded-pill px-4">
                                         Next
-                                        <i class="bi bi-chevron-right ms-2"></i>
+                                        <i class="bi bi-arrow-right ms-2"></i>
                                     </button>
                                 </form>
-                            <% } else { %>
-                                <button class="btn btn-outline-light btn-lg w-100 py-3" disabled>
-                                    Next
-                                    <i class="bi bi-chevron-right ms-2"></i>
-                                </button>
-                            <% } %>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Study Tips -->
-                    <div class="text-center mt-4">
-                        <small class="text-white-50">
-                            <i class="bi bi-lightbulb me-1"></i>
-                            Tip: Read the question carefully before revealing the answer
-                        </small>
+                    <!-- Quick Actions -->
+                    <div class="row mt-5">
+                        <div class="col-md-6 mb-3">
+                            <a href="/" class="btn btn-outline-light btn-lg w-100 py-3">
+                                <i class="bi bi-house me-2"></i>
+                                Back to Dashboard
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <form method="POST" action="/flashcard" class="d-inline w-100">
+                                <input type="hidden" name="currentIndex" value="0">
+                                <input type="hidden" name="showAnswer" value="false">
+                                <button type="submit" class="btn btn-light btn-lg w-100 py-3">
+                                    <i class="bi bi-arrow-clockwise me-2"></i>
+                                    Restart Cards
+                                </button>
+                            </form>
+                        </div>
                     </div>
 
                 </div>
@@ -240,43 +369,389 @@ window.MathJax = {
         </div>
     </div>
 
+    <!-- Text Selection Popup -->
+    <div id="text-selection-popup" class="text-selection-popup">
+        <button class="expansion-option" onclick="expandText('explain')">
+            <i class="bi bi-chat-dots"></i>
+            Explain
+        </button>
+        <button class="expansion-option" onclick="expandText('examples')">
+            <i class="bi bi-lightbulb"></i>
+            Examples
+        </button>
+        <button class="expansion-option" onclick="expandText('simplify')">
+            <i class="bi bi-arrow-down-circle"></i>
+            Simplify
+        </button>
+        <button class="expansion-option" onclick="expandText('context')">
+            <i class="bi bi-info-circle"></i>
+            Context
+        </button>
+    </div>
+
+    <!-- Expansion Bubble -->
+    <div id="expansion-bubble" class="expansion-bubble">
+        <button class="close-bubble" onclick="closeBubble()">×</button>
+        <div class="bubble-content">
+            <!-- Content will be populated here -->
+        </div>
+    </div>
+
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Custom CSS for additional styling -->
+    <!-- Custom JavaScript -->
+    <script>
+        let selectedText = '';
+        let currentExpansionType = '';
+        let selectionPosition = { x: 0, y: 0 };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashcardContent = document.getElementById('flashcard-content');
+            const popup = document.getElementById('text-selection-popup');
+            const bubble = document.getElementById('expansion-bubble');
+
+            // Handle text selection
+            flashcardContent.addEventListener('mouseup', function(e) {
+                const selection = window.getSelection();
+                const text = selection.toString().trim();
+                
+                if (text.length > 0) {
+                    selectedText = text;
+                    selectionPosition = { x: e.pageX, y: e.pageY };
+                    showSelectionPopup(e.pageX, e.pageY);
+                } else {
+                    hideSelectionPopup();
+                }
+            });
+
+            // Hide popup when clicking elsewhere
+            document.addEventListener('click', function(e) {
+                if (!popup.contains(e.target) && !flashcardContent.contains(e.target) && !bubble.contains(e.target)) {
+                    hideSelectionPopup();
+                    closeBubble();
+                }
+            });
+
+            // Hide popup on scroll
+            window.addEventListener('scroll', function() {
+                hideSelectionPopup();
+                closeBubble();
+            });
+        });
+
+        function showSelectionPopup(x, y) {
+            const popup = document.getElementById('text-selection-popup');
+            
+            // Position popup near cursor
+            let left = x - 100;
+            let top = y - 50;
+            
+            // Keep popup in viewport
+            if (left < 10) left = 10;
+            if (left + 200 > window.innerWidth - 10) left = window.innerWidth - 210;
+            if (top < 10) top = y + 10;
+            
+            popup.style.left = left + 'px';
+            popup.style.top = top + 'px';
+            popup.style.display = 'block';
+        }
+
+        function hideSelectionPopup() {
+            document.getElementById('text-selection-popup').style.display = 'none';
+        }
+
+        async function expandText(type) {
+            if (!selectedText) return;
+
+            currentExpansionType = type;
+            hideSelectionPopup();
+            
+            // Show bubble at selection position
+            showBubble(selectionPosition.x, selectionPosition.y);
+            
+            // Show loading in bubble
+            document.querySelector('.bubble-content').innerHTML = `
+                <div class="expansion-loading">
+                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                    Loading...
+                </div>
+            `;
+
+            try {
+                const expandedContent = await generateExpansion(selectedText, type);
+                displayExpansionInBubble(expandedContent, type);
+            } catch (error) {
+                console.error('Error expanding text:', error);
+                document.querySelector('.bubble-content').innerHTML = `
+                    <div class="text-danger">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Failed to load explanation
+                    </div>
+                `;
+            }
+        }
+
+        function showBubble(x, y) {
+            const bubble = document.getElementById('expansion-bubble');
+            
+            // Position bubble near selection
+            let left = x - 150;
+            let top = y + 10;
+            
+            // Keep bubble in viewport
+            if (left < 10) left = 10;
+            if (left + 300 > window.innerWidth - 10) left = window.innerWidth - 310;
+            if (top + 200 > window.innerHeight - 10) top = y - 150;
+            
+            bubble.style.left = left + 'px';
+            bubble.style.top = top + 'px';
+            bubble.style.display = 'block';
+        }
+
+        function closeBubble() {
+            document.getElementById('expansion-bubble').style.display = 'none';
+        }
+
+        async function generateExpansion(text, type) {
+            const prompts = {
+                'explain': `Briefly explain: "${text}". Give a concise definition and key points in 2-3 sentences.`,
+                'examples': `Provide 2-3 quick examples of: "${text}". Keep it short and practical.`,
+                'simplify': `Simplify: "${text}". Explain in simple terms in 1-2 sentences.`,
+                'context': `Provide brief context for: "${text}". Explain why it's important in 2-3 sentences.`
+            };
+
+            const response = await fetch('/api/expand-text', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    text: text,
+                    type: type,
+                    prompt: prompts[type],
+                    topic: '<%= topic %>',
+                    gradeLevel: '<%= gradeLevel %>'
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to generate expansion');
+            }
+
+            const data = await response.json();
+            return data.expansion;
+        }
+
+        function displayExpansionInBubble(content, type) {
+            const titles = {
+                'explain': 'Explanation',
+                'examples': 'Examples',
+                'simplify': 'Simplified',
+                'context': 'Context'
+            };
+
+            document.querySelector('.bubble-content').innerHTML = `
+                <h6>${titles[type]}</h6>
+                <div>${content}</div>
+            `;
+
+            // Re-render MathJax if present
+            if (window.MathJax) {
+                MathJax.typesetPromise([document.querySelector('.bubble-content')]);
+            }
+        }
+    </script>
+
+    <!-- Royal Dark Theme Styles -->
     <style>
-        .flashcard-main {
-            min-height: 400px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        /* Background and Core Styling */
+        .bg-gradient-primary {
+            background: var(--royal-gradient) !important;
+        }
+
+        /* Fixed Progress Bar */
+        .fixed-progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--royal-purple) 100%) !important;
+            backdrop-filter: blur(20px);
+            z-index: 1050;
+            padding: 12px 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border-bottom: 1px solid var(--royal-gold);
         }
         
-        .flashcard-main:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2) !important;
+        .fixed-progress-bar .progress {
+            background-color: rgba(245, 158, 11, 0.2) !important;
+            border-radius: 10px;
+            border: 1px solid var(--royal-gold);
         }
         
-        .question-card {
-            background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%);
-            border-left: 5px solid var(--bs-primary);
+        .fixed-progress-bar .progress-bar {
+            background: linear-gradient(90deg, var(--royal-gold) 0%, #FCD34D 100%) !important;
+            border-radius: 10px;
+            transition: width 0.4s ease;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
         }
-        
-        .answer-card {
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            border-left: 5px solid var(--bs-success);
+
+        .fixed-progress-bar .badge {
+            background: var(--royal-gold) !important;
+            color: var(--dark-bg) !important;
+            border: 1px solid rgba(245, 158, 11, 0.3);
         }
-        
-        .progress-bar {
-            transition: width 0.5s ease;
+
+        /* Main Card Styling */
+        .card {
+            background: var(--dark-card) !important;
+            border: 2px solid var(--royal-purple) !important;
+            box-shadow: 0 20px 40px rgba(124, 58, 237, 0.2) !important;
+            backdrop-filter: blur(20px);
         }
-        
+
+        .card-body {
+            background: linear-gradient(135deg, var(--dark-card) 0%, rgba(30, 41, 59, 0.8) 100%);
+        }
+
+        /* Text Colors */
+        .text-primary {
+            color: var(--royal-gold) !important;
+        }
+
+        .text-success {
+            color: #10B981 !important;
+        }
+
+        .flashcard-content {
+            color: var(--text-primary) !important;
+        }
+
+        /* Button Styling */
+        .btn-outline-light {
+            background: rgba(15, 23, 42, 0.8) !important;
+            border: 2px solid var(--royal-purple) !important;
+            color: var(--text-primary) !important;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-light:hover, .btn-outline-light:focus {
+            background: linear-gradient(135deg, var(--royal-purple), var(--royal-blue)) !important;
+            border-color: var(--royal-gold) !important;
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--royal-purple) 0%, var(--royal-blue) 100%) !important;
+            border: 2px solid var(--royal-gold) !important;
+            color: white !important;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover, .btn-primary:focus {
+            background: linear-gradient(135deg, #8B5CF6 0%, #3B82F6 100%) !important;
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(124, 58, 237, 0.5);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+            border: 2px solid var(--royal-gold) !important;
+            color: white !important;
+            transition: all 0.3s ease;
+        }
+
+        .btn-success:hover, .btn-success:focus {
+            background: linear-gradient(135deg, #34D399 0%, #10B981 100%) !important;
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-light {
+            background: linear-gradient(135deg, var(--royal-gold) 0%, #FCD34D 100%) !important;
+            border: 2px solid var(--royal-purple) !important;
+            color: var(--dark-bg) !important;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-light:hover, .btn-light:focus {
+            background: linear-gradient(135deg, #FCD34D 0%, var(--royal-gold) 100%) !important;
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(245, 158, 11, 0.4);
+        }
+
+        /* Header Badge */
+        .bg-white.bg-opacity-10 {
+            background: rgba(124, 58, 237, 0.2) !important;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Text Colors */
+        .text-white-50 {
+            color: var(--text-muted) !important;
+        }
+
+        /* Enhanced Animations */
+        .btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Flashcard Counter */
+        .rounded-pill {
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(245, 158, 11, 0.3) !important;
+        }
+
+        /* Mobile Responsive */
         @media (max-width: 768px) {
-            .flashcard-main {
-                min-height: 350px;
+            .fixed-progress-bar {
+                padding: 10px 0;
             }
             
-            .card-body {
-                padding: 2rem !important;
+            .fixed-progress-bar .col-auto:first-child {
+                display: none;
             }
+
+            .flashcard:hover {
+                transform: translateY(-4px) rotateX(1deg);
+            }
+        }
+        
+        /* Print styles */
+        @media print {
+            .fixed-progress-bar {
+                display: none;
+            }
+            
+            .bg-gradient-primary {
+                background: white !important;
+            }
+            
+            .card {
+                background: white !important;
+                color: black !important;
+            }
+        }
+
+        /* Accessibility Focus States */
+        .btn:focus {
+            outline: 2px solid var(--royal-gold);
+            outline-offset: 2px;
+        }
+
+        /* Smooth Scrolling */
+        html {
+            scroll-behavior: smooth;
         }
     </style>
 </body>
