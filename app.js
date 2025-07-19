@@ -6,11 +6,19 @@ import session from "express-session";
 import dotenv from "dotenv";
 import multer from 'multer';
 import FormData from 'form-data';
+import pg from 'pg';
 dotenv.config();
 
 const app = express();
 const port = 3000;
-
+const db = new pg.Client({
+    user:"postgres",
+    host:"localhost",
+    database:"Content Storage",
+    password:"postgrespass1!",
+    port:"5432"
+});
+db.connect();
 marked.setOptions({
     breaks: true,
     gfm: true,
@@ -82,7 +90,8 @@ app.post("/generate", upload.single('document'), async (req, res) => {
     const level = req.body.gradeLevel;
     const type = req.body.studyType;
     const method = req.body.inputMethod;
-    
+    req.session.topic = topic;
+    req.session.level = level;
     if (!level || !type) {
         return res.status(400).send("Please fill in all required fields");
     }
@@ -126,7 +135,7 @@ Level: ${level}`
                 Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`
             }
         });
-        
+        req.session.content = response.data.choices[0].message.content
         res.render("quicknotes.ejs", {
             topic: topic,
             gradeLevel: level,
@@ -142,7 +151,7 @@ Level: ${level}`
         else if (type === "flashcards") {
             try {
                 const response = await axios.post("https://api.perplexity.ai/chat/completions", {
-                    "model": "sonar",
+                    "model": "sonar-pro",
                     "messages": [
                         {
                             "role": "system",
@@ -362,7 +371,7 @@ Format: Use HTML formatting with proper tags.`
 
             else if (type === "flashcards") {
                 const response = await axios.post("https://api.perplexity.ai/chat/completions", {
-                    "model": "sonar",
+                    "model": "sonar-pro",
                     "messages": [
                         {
                             "role": "system",
@@ -499,37 +508,14 @@ app.post("/flashcard", (req, res) => {
 app.post("/quiz", async (req, res) => {
     var showResults = true;
     var userAnswers = [];
-    userAnswers.push(req.body.answer_0);
-    userAnswers.push(req.body.answer_1);
-    userAnswers.push(req.body.answer_2);
-    userAnswers.push(req.body.answer_3);
-    userAnswers.push(req.body.answer_4);
-    userAnswers.push(req.body.answer_5);
-    userAnswers.push(req.body.answer_6);
-    userAnswers.push(req.body.answer_7);
-    userAnswers.push(req.body.answer_8);
-    userAnswers.push(req.body.answer_9);
     var score = 0;
-    if(req.body.answer_0===req.session.content[0].answer)
+for(let i = 0; i < 10; i++) {
+    userAnswers.push(req.body[`answer_${i}`]);
+    if(req.body[`answer_${i}`] === req.session.content[i].answer) {
         score++;
-    if(req.body.answer_1===req.session.content[1].answer)
-        score++;
-    if(req.body.answer_2===req.session.content[2].answer)
-        score++;
-    if(req.body.answer_3===req.session.content[3].answer)
-        score++;
-    if(req.body.answer_4===req.session.content[4].answer)
-        score++;
-    if(req.body.answer_5===req.session.content[5].answer)
-        score++;
-    if(req.body.answer_6===req.session.content[6].answer)
-        score++;
-    if(req.body.answer_7===req.session.content[7].answer)
-        score++;
-    if(req.body.answer_8===req.session.content[8].answer)
-        score++;
-    if(req.body.answer_9===req.session.content[9].answer)
-        score++;
+    }
+}
+
 
     const prompt = `Analyze this quiz performance:
         
@@ -561,7 +547,7 @@ IMPORTANT: Format your response in proper HTML with:
 - Make it clean and well-structured for web display
 - Refer to the person as if you're talking to them, not as "the student".
 - Do NOT use Markdown syntax (##, -, **) - use actual HTML tags only
-- If referencing mathematical concepts, use $$...$$ notation`;
+- If referencing mathematical concepts, use $$...$$ proper latex notation`;
 
     const analysis = await axios.post("https://api.perplexity.ai/chat/completions",{
         model:"sonar-pro",
@@ -669,5 +655,50 @@ Text to expand: "${text}"`;
         res.status(500).json({ error: 'Failed to generate expansion' });
     }
 });
+app.post("/save-quicknotes", async (req, res) => {
+    try {
+        const topic = req.body.topic;
+        const level = req.body.gradeLevel;
+        const content = req.body.content;
+        
+            await db.query(
+            "INSERT INTO quicknotes(topic, gradeLevel, note_content) VALUES ($1,$2,$3)",
+            [topic, level, content]
+        );
+        res.render('quicknotes',{
+            topic:topic,
+            gradeLevel: level,
+            content:content,
+            saved:true
+
+        })
+    } catch (error) {
+        console.error('Error saving notes:', error);
+        res.status(500).send("Error saving notes")
+    }
+});
+app.get("/saved-content",(req,res)=>{
+    res.render("saved-content.ejs");
+});
+app.get("/api/quicknotes",async (req,res)=>{
+    const response = await db.query("SELECT id,topic,gradelevel,created_at FROM quicknotes");
+    res.json(response.rows);
+});
+app.get("/view-quicknote/:id",async (req,res)=>{
+    const id = req.params.id;
+    const response = await db.query("SELECT topic,gradelevel,note_content FROM quicknotes WHERE id=$1",[id]);
+    const result = response.rows[0];
+    res.render("quicknotes.ejs",{
+        topic:result.topic,
+        gradeLevel:result.gradelevel,
+        content:result.note_content
+    })
+});
+app.delete("/delete-content/quicknotes/:id",async(req,res)=>{
+    const id = req.params.id;
+    await db.query("DELETE FROM quicknotes WHERE id=$1",[id]);
+    res.json({success:true});
+})
+
 
 
