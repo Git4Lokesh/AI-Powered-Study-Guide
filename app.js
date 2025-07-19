@@ -11,14 +11,13 @@ dotenv.config();
 
 const app = express();
 const port = 3000;
-const db = new pg.Client({
-    user:"postgres",
-    host:"localhost",
-    database:"Content Storage",
-    password:"postgrespass1!",
-    port:"5432"
+const db = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { 
+    rejectUnauthorized: false 
+  } : false
 });
-db.connect();
+
 marked.setOptions({
     breaks: true,
     gfm: true,
@@ -80,7 +79,25 @@ function processMathContent(content) {
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
+async function initializeDatabase() {
+  try {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS quicknotes (
+        id SERIAL PRIMARY KEY,
+        topic VARCHAR(255) NOT NULL,
+        gradelevel VARCHAR(50) NOT NULL,
+        note_content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log("Database initialized successfully");
+  } catch (error) {
+    console.error("Database initialization failed:", error);
+  }
+}
 
+// Initialize database on startup
+initializeDatabase();
 app.get("/", (req, res) => {
     res.render("dashboard.ejs");
 });
