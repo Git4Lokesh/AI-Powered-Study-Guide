@@ -20,9 +20,11 @@
     "express-session": "^1.18.1",
     "llamaindex": "^0.11.17",
     "marked": "^16.0.0",
+    "mathjax-node": "^1.2.1",
     "multer": "^2.0.1",
     "nodemon": "^3.1.10",
     "pdf-parse": "^1.1.1",
+    "pg": "^8.16.3",
     "redis": "^5.6.0"
   }
 }
