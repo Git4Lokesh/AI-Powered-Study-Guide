@@ -57,8 +57,22 @@ window.MathJax = {
 };
 </script>
 <style>
+  /* Royal Dark Theme Variables */
+  :root {
+      --royal-purple: #7C3AED;
+      --royal-blue: #2563EB;
+      --royal-gold: #F59E0B;
+      --dark-bg: #0F172A;
+      --dark-card: #1E293B;
+      --dark-border: #334155;
+      --royal-gradient: linear-gradient(135deg, #0F172A 0%, #1E293B 25%, #312E81 50%, #7C3AED 100%);
+      --text-primary: #F8FAFC;
+      --text-secondary: #CBD5E1;
+      --text-muted: #94A3B8;
+  }
+
   .math-equation { 
-    color: #d63384;
+    color: var(--royal-gold) !important;
     font-weight: 500;
   }
   
@@ -76,7 +90,33 @@ window.MathJax = {
 </style>
 </head>
 <body class="bg-gradient-primary">
-    <div class="container-fluid py-4">
+    <!-- Fixed Progress Bar (Only shown during quiz) -->
+    <% if (!showResults) { %>
+        <div class="fixed-progress-bar">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <i class="bi bi-list-check text-white me-2"></i>
+                        <span class="text-white fw-semibold">Quiz Progress</span>
+                    </div>
+                    <div class="col">
+                        <div class="progress mx-3" style="height: 6px;">
+                            <div class="progress-bar bg-white" role="progressbar" style="width: 0%" 
+                                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="quiz-progress-bar">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <span class="badge bg-white text-primary px-3 py-1 fw-semibold" id="progress-text">
+                            0/<%= content.length %>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <% } %>
+
+    <div class="container-fluid py-4" style="<%= !showResults ? 'padding-top: 80px !important;' : '' %>">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-10 col-xl-8">
@@ -116,7 +156,7 @@ window.MathJax = {
                         <div class="card border-0 shadow-lg rounded-4">
                             <div class="card-body p-5 text-center">
                                 <div class="mb-4">
-                                    <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 rounded-circle p-4 mb-4">
+                                    <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-20 rounded-circle p-4 mb-4 success-icon">
                                         <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
                                     </div>
                                     <h2 class="text-success fw-bold mb-3">Quiz Complete!</h2>
@@ -124,14 +164,14 @@ window.MathJax = {
                                     <!-- Score Display -->
                                     <div class="row justify-content-center mb-4">
                                         <div class="col-md-6">
-                                            <div class="card bg-primary bg-opacity-10 border-primary border-opacity-25">
+                                            <div class="card bg-primary bg-opacity-10 border-primary border-opacity-25 score-card">
                                                 <div class="card-body py-4">
                                                     <div class="d-flex align-items-center justify-content-center">
                                                         <div class="me-3">
-                                                            <i class="bi bi-trophy text-primary fs-2"></i>
+                                                            <i class="bi bi-trophy text-primary fs-2 trophy-icon"></i>
                                                         </div>
                                                         <div class="text-center">
-                                                            <div class="fs-1 fw-bold text-primary mb-1">
+                                                            <div class="fs-1 fw-bold text-primary mb-1 score-percentage">
                                                                 <%= Math.round((score/content.length) * 100) %>%
                                                             </div>
                                                             <div class="text-muted">
@@ -146,63 +186,61 @@ window.MathJax = {
                                 </div>
                                 
                                 <!-- Answer Review -->
-                                <!-- Answer Review -->
-<div class="text-start mb-4">
-    <h3 class="text-primary mb-4 text-center">
-        <i class="bi bi-clipboard-check me-2"></i>
-        Answer Review
-    </h3>
-    
-    <% content.forEach((item, index) => { %>
-        <div class="card mb-3 border-0 shadow-sm">
-            <div class="card-body p-4">
-                <div class="d-flex align-items-start">
-                    <div class="me-3">
-                        <% if (userAnswers && userAnswers[index] === item.answer) { %>
-                            <div class="bg-success bg-opacity-10 rounded-circle p-2">
-                                <i class="bi bi-check text-success fs-5"></i>
-                            </div>
-                        <% } else { %>
-                            <div class="bg-danger bg-opacity-10 rounded-circle p-2">
-                                <i class="bi bi-x text-danger fs-5"></i>
-                            </div>
-                        <% } %>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h6 class="fw-semibold mb-2">Question <%= index + 1 %></h6>
-                        <p class="mb-3 text-dark"><%= item.question %></p>
-                        
-                        <!-- Correct Answer - Full Width -->
-                        <div class="mb-3">
-                            <small class="text-muted d-block mb-1">Correct Answer:</small>
-                            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 d-inline-block">
-                                <%= item[item.answer] %>
-                            </span>
-                        </div>
-                        
-                        <!-- User Answer - Full Width, Separate Line -->
-                        <% if (userAnswers && userAnswers[index]) { %>
-                            <div class="mb-2">
-                                <small class="text-muted d-block mb-1">Your Answer:</small>
-                                <span class="badge <%= userAnswers[index] === item.answer ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger' %> px-3 py-2 d-inline-block">
-                                    <%= item[userAnswers[index]] || 'Not answered' %>
-                                </span>
-                            </div>
-                        <% } %>
-                    </div>
-                </div>
-            </div>
-        </div>
-    <% }) %>
-</div>
+                                <div class="text-start mb-4">
+                                    <h3 class="text-primary mb-4 text-center">
+                                        <i class="bi bi-clipboard-check me-2"></i>
+                                        Answer Review
+                                    </h3>
+                                    
+                                    <% content.forEach((item, index) => { %>
+                                        <div class="card mb-3 border-0 shadow-sm answer-review-card">
+                                            <div class="card-body p-4">
+                                                <div class="d-flex align-items-start">
+                                                    <div class="me-3">
+                                                        <% if (userAnswers && userAnswers[index] === item.answer) { %>
+                                                            <div class="bg-success bg-opacity-20 rounded-circle p-2 correct-indicator">
+                                                                <i class="bi bi-check text-success fs-5"></i>
+                                                            </div>
+                                                        <% } else { %>
+                                                            <div class="bg-danger bg-opacity-20 rounded-circle p-2 incorrect-indicator">
+                                                                <i class="bi bi-x text-danger fs-5"></i>
+                                                            </div>
+                                                        <% } %>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <h6 class="fw-semibold mb-2 question-header">Question <%= index + 1 %></h6>
+                                                        <p class="mb-3 text-dark question-text"><%= item.question %></p>
+                                                        
+                                                        <!-- Correct Answer - Full Width -->
+                                                        <div class="mb-3">
+                                                            <small class="text-muted d-block mb-1">Correct Answer:</small>
+                                                            <span class="badge bg-success bg-opacity-20 text-success px-3 py-2 d-inline-block correct-answer-badge">
+                                                                <%= item[item.answer] %>
+                                                            </span>
+                                                        </div>
+                                                        
+                                                        <!-- User Answer - Full Width, Separate Line -->
+                                                        <% if (userAnswers && userAnswers[index]) { %>
+                                                            <div class="mb-2">
+                                                                <small class="text-muted d-block mb-1">Your Answer:</small>
+                                                                <span class="badge <%= userAnswers[index] === item.answer ? 'bg-success bg-opacity-20 text-success' : 'bg-danger bg-opacity-20 text-danger' %> px-3 py-2 d-inline-block user-answer-badge">
+                                                                    <%= item[userAnswers[index]] || 'Not answered' %>
+                                                                </span>
+                                                            </div>
+                                                        <% } %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <% }) %>
+                                </div>
 
-
-                                <!-- ✨ NEW: AI Performance Analysis Section ✨ -->
+                                <!-- ✨ AI Performance Analysis Section ✨ -->
                                 <% if (typeof performanceAnalysis !== 'undefined' && performanceAnalysis) { %>
-                                    <div class="card mt-4 border-0 shadow-lg rounded-4">
+                                    <div class="card mt-4 border-0 shadow-lg rounded-4 analysis-card">
                                         <div class="card-header bg-gradient-primary text-white border-0 py-4">
                                             <div class="d-flex align-items-center">
-                                                <div class="bg-white bg-opacity-20 rounded-circle p-3 me-3">
+                                                <div class="bg-white bg-opacity-20 rounded-circle p-3 me-3 ai-icon">
                                                     <i class="bi bi-robot text-white fs-4"></i>
                                                 </div>
                                                 <div>
@@ -242,13 +280,13 @@ window.MathJax = {
                                 <!-- Action Buttons -->
                                 <div class="row mt-5">
                                     <div class="col-md-6 mb-3">
-                                        <a href="/" class="btn btn-primary btn-lg w-100 py-3">
+                                        <a href="/" class="btn btn-primary btn-lg w-100 py-3 action-button">
                                             <i class="bi bi-house me-2"></i>
                                             Back to Dashboard
                                         </a>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <a href="/?topic=<%= encodeURIComponent(topic) %>&gradeLevel=<%= gradeLevel %>&studyType=quiz" class="btn btn-outline-primary btn-lg w-100 py-3">
+                                        <a href="/?topic=<%= encodeURIComponent(topic) %>&gradeLevel=<%= gradeLevel %>&studyType=quiz" class="btn btn-outline-primary btn-lg w-100 py-3 action-button">
                                             <i class="bi bi-arrow-clockwise me-2"></i>
                                             Retake Quiz
                                         </a>
@@ -264,7 +302,7 @@ window.MathJax = {
                             
                             <!-- Question Count Info -->
                             <div class="text-center mb-4">
-                                <span class="badge bg-white bg-opacity-10 text-white px-4 py-2 fs-6">
+                                <span class="badge bg-white bg-opacity-10 text-white px-4 py-2 fs-6 question-count-badge">
                                     <i class="bi bi-list-check me-2"></i>
                                     <%= content.length %> Questions
                                 </span>
@@ -272,77 +310,77 @@ window.MathJax = {
                             
                             <!-- All Questions -->
                             <% content.forEach((item, index) => { %>
-                                <div class="card border-0 shadow-lg rounded-4 mb-4">
+                                <div class="card border-0 shadow-lg rounded-4 mb-4 question-card" data-question="<%= index + 1 %>">
                                     <div class="card-body p-4">
                                         <div class="d-flex align-items-center mb-3">
-                                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3 question-number">
                                                 <span class="text-primary fw-bold"><%= index + 1 %></span>
                                             </div>
                                             <h6 class="text-primary fw-semibold mb-0">Question <%= index + 1 %></h6>
                                         </div>
                                         
                                         <div class="question-text mb-4">
-                                            <h5 class="text-dark lh-base"><%= item.question %></h5>
+                                            <h5 class="text-dark lh-base question-content"><%= item.question %></h5>
                                         </div>
                                         
                                         <div class="row g-2">
                                             <div class="col-12">
                                                 <input type="radio" 
-                                                       class="btn-check" 
+                                                       class="btn-check quiz-radio" 
                                                        id="q<%= index %>_option1" 
                                                        name="answer_<%= index %>" 
                                                        value="option1" 
                                                        required>
-                                                <label class="btn btn-outline-primary w-100 text-start p-3" 
+                                                <label class="btn btn-outline-primary w-100 text-start p-3 option-button" 
                                                        for="q<%= index %>_option1">
                                                     <div class="d-flex align-items-center">
-                                                        <span class="badge bg-primary bg-opacity-10 text-primary me-3 px-2 py-1">A</span>
-                                                        <%= item.option1 %>
+                                                        <span class="badge bg-primary bg-opacity-10 text-primary me-3 px-2 py-1 option-badge">A</span>
+                                                        <span class="option-text"><%= item.option1 %></span>
                                                     </div>
                                                 </label>
                                             </div>
                                             <div class="col-12">
                                                 <input type="radio" 
-                                                       class="btn-check" 
+                                                       class="btn-check quiz-radio" 
                                                        id="q<%= index %>_option2" 
                                                        name="answer_<%= index %>" 
                                                        value="option2" 
                                                        required>
-                                                <label class="btn btn-outline-primary w-100 text-start p-3" 
+                                                <label class="btn btn-outline-primary w-100 text-start p-3 option-button" 
                                                        for="q<%= index %>_option2">
                                                     <div class="d-flex align-items-center">
-                                                        <span class="badge bg-primary bg-opacity-10 text-primary me-3 px-2 py-1">B</span>
-                                                        <%= item.option2 %>
+                                                        <span class="badge bg-primary bg-opacity-10 text-primary me-3 px-2 py-1 option-badge">B</span>
+                                                        <span class="option-text"><%= item.option2 %></span>
                                                     </div>
                                                 </label>
                                             </div>
                                             <div class="col-12">
                                                 <input type="radio" 
-                                                       class="btn-check" 
+                                                       class="btn-check quiz-radio" 
                                                        id="q<%= index %>_option3" 
                                                        name="answer_<%= index %>" 
                                                        value="option3" 
                                                        required>
-                                                <label class="btn btn-outline-primary w-100 text-start p-3" 
+                                                <label class="btn btn-outline-primary w-100 text-start p-3 option-button" 
                                                        for="q<%= index %>_option3">
                                                     <div class="d-flex align-items-center">
-                                                        <span class="badge bg-primary bg-opacity-10 text-primary me-3 px-2 py-1">C</span>
-                                                        <%= item.option3 %>
+                                                        <span class="badge bg-primary bg-opacity-10 text-primary me-3 px-2 py-1 option-badge">C</span>
+                                                        <span class="option-text"><%= item.option3 %></span>
                                                     </div>
                                                 </label>
                                             </div>
                                             <div class="col-12">
                                                 <input type="radio" 
-                                                       class="btn-check" 
+                                                       class="btn-check quiz-radio" 
                                                        id="q<%= index %>_option4" 
                                                        name="answer_<%= index %>" 
                                                        value="option4" 
                                                        required>
-                                                <label class="btn btn-outline-primary w-100 text-start p-3" 
+                                                <label class="btn btn-outline-primary w-100 text-start p-3 option-button" 
                                                        for="q<%= index %>_option4">
                                                     <div class="d-flex align-items-center">
-                                                        <span class="badge bg-primary bg-opacity-10 text-primary me-3 px-2 py-1">D</span>
-                                                        <%= item.option4 %>
+                                                        <span class="badge bg-primary bg-opacity-10 text-primary me-3 px-2 py-1 option-badge">D</span>
+                                                        <span class="option-text"><%= item.option4 %></span>
                                                     </div>
                                                 </label>
                                             </div>
@@ -353,7 +391,7 @@ window.MathJax = {
                             
                             <!-- Submit Button -->
                             <div class="text-center mt-4 mb-5">
-                                <button type="submit" class="btn btn-primary btn-lg px-5 py-3">
+                                <button type="submit" class="btn btn-primary btn-lg px-5 py-3 submit-button">
                                     <i class="bi bi-check-circle me-2"></i>
                                     Submit Quiz
                                     <i class="bi bi-arrow-right ms-2"></i>
@@ -403,42 +441,345 @@ window.MathJax = {
                 console.error('Failed to copy: ', err);
             });
         }
+
+        // Progress Bar JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            const radioButtons = document.querySelectorAll('.quiz-radio');
+            const progressBar = document.getElementById('quiz-progress-bar');
+            const progressText = document.getElementById('progress-text');
+            
+            if (radioButtons.length > 0 && progressBar) {
+                const totalQuestions = <%= content.length %>;
+                
+                function updateProgress() {
+                    const answeredQuestions = new Set();
+                    radioButtons.forEach(radio => {
+                        if (radio.checked) {
+                            const questionIndex = radio.name.split('_')[1];
+                            answeredQuestions.add(questionIndex);
+                        }
+                    });
+                    
+                    const answeredCount = answeredQuestions.size;
+                    const percentage = (answeredCount / totalQuestions) * 100;
+                    
+                    progressBar.style.width = percentage + '%';
+                    progressBar.setAttribute('aria-valuenow', percentage);
+                    progressText.textContent = `${answeredCount}/${totalQuestions}`;
+                }
+                
+                radioButtons.forEach(radio => {
+                    radio.addEventListener('change', updateProgress);
+                });
+            }
+
+            // Add entrance animations
+            const questionCards = document.querySelectorAll('.question-card');
+            questionCards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.classList.add('fade-in-up');
+            });
+        });
     </script>
     
-    <!-- Custom CSS for enhanced styling -->
+    <!-- Royal Dark Theme Styles -->
     <style>
+        /* Background and Core Styling */
+        .bg-gradient-primary {
+            background: var(--royal-gradient) !important;
+        }
+
+        /* Fixed Progress Bar */
+        .fixed-progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--royal-purple) 100%) !important;
+            backdrop-filter: blur(20px);
+            z-index: 1050;
+            padding: 12px 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border-bottom: 1px solid var(--royal-gold);
+        }
+        
+        .fixed-progress-bar .progress {
+            background-color: rgba(245, 158, 11, 0.2) !important;
+            border-radius: 10px;
+            border: 1px solid var(--royal-gold);
+        }
+        
+        .fixed-progress-bar .progress-bar {
+            background: linear-gradient(90deg, var(--royal-gold) 0%, #FCD34D 100%) !important;
+            border-radius: 10px;
+            transition: width 0.4s ease;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+        }
+
+        .fixed-progress-bar .badge {
+            background: var(--royal-gold) !important;
+            color: var(--dark-bg) !important;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* Main Card Styling */
         .card {
-            transition: all 0.3s ease;
+            background: var(--dark-card) !important;
+            border: 2px solid var(--royal-purple) !important;
+            box-shadow: 0 20px 40px rgba(124, 58, 237, 0.2) !important;
+            backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.15) !important;
+            transform: translateY(-8px);
+            box-shadow: 0 30px 60px rgba(124, 58, 237, 0.3) !important;
         }
-        
-        .btn-check:checked + .btn {
-            background-color: var(--bs-primary) !important;
-            color: white !important;
-            border-color: var(--bs-primary) !important;
+
+        /* Question Cards */
+        .question-card {
+            border: 2px solid var(--dark-border) !important;
+            position: relative;
+            overflow: hidden;
         }
-        
-        .btn-check:checked + .btn .badge {
-            background-color: white !important;
-            color: var(--bs-primary) !important;
+
+        .question-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--royal-purple), var(--royal-blue), var(--royal-gold));
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
-        
-        .btn {
+
+        .question-card:hover::before {
+            opacity: 1;
+        }
+
+        .question-card:hover {
+            border-color: var(--royal-gold) !important;
+        }
+
+        /* Text Colors */
+        .text-primary {
+            color: var(--royal-gold) !important;
+        }
+
+        .text-success {
+            color: #10B981 !important;
+        }
+
+        .text-dark {
+            color: var(--text-primary) !important;
+        }
+
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        .text-white-50 {
+            color: var(--text-muted) !important;
+        }
+
+        .text-white-75 {
+            color: rgba(248, 250, 252, 0.75) !important;
+        }
+
+        /* Question Text */
+        .question-content {
+            color: var(--text-primary) !important;
+        }
+
+        .option-text {
+            color: var(--text-secondary) !important;
+        }
+
+        /* Button Styling */
+        .btn-outline-primary {
+            background: rgba(15, 23, 42, 0.8) !important;
+            border: 2px solid var(--dark-border) !important;
+            color: var(--text-secondary) !important;
+            backdrop-filter: blur(10px);
             transition: all 0.3s ease;
         }
-        
-        /* AI Analysis Specific Styles */
-        .bg-gradient-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+
+        .btn-outline-primary:hover, .btn-outline-primary:focus {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(37, 99, 235, 0.2)) !important;
+            border-color: var(--royal-gold) !important;
+            color: var(--text-primary) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.3);
         }
-        
+
+        .btn-check:checked + .btn-outline-primary {
+            background: linear-gradient(135deg, var(--royal-purple), var(--royal-blue)) !important;
+            border-color: var(--royal-gold) !important;
+            color: white !important;
+            box-shadow: 0 12px 30px rgba(124, 58, 237, 0.4);
+        }
+
+        .btn-check:checked + .btn-outline-primary .option-badge {
+            background: var(--royal-gold) !important;
+            color: var(--dark-bg) !important;
+        }
+
+        .btn-check:checked + .btn-outline-primary .option-text {
+            color: white !important;
+        }
+
+        .btn-outline-light {
+            background: rgba(15, 23, 42, 0.8) !important;
+            border: 2px solid var(--royal-purple) !important;
+            color: var(--text-primary) !important;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-light:hover, .btn-outline-light:focus {
+            background: linear-gradient(135deg, var(--royal-purple), var(--royal-blue)) !important;
+            border-color: var(--royal-gold) !important;
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--royal-purple) 0%, var(--royal-blue) 100%) !important;
+            border: 2px solid var(--royal-gold) !important;
+            color: white !important;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover, .btn-primary:focus {
+            background: linear-gradient(135deg, #8B5CF6 0%, #3B82F6 100%) !important;
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(124, 58, 237, 0.5);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+            border: 2px solid var(--royal-gold) !important;
+            color: white !important;
+            transition: all 0.3s ease;
+        }
+
+        /* Header Badge */
+        .bg-white.bg-opacity-10 {
+            background: rgba(124, 58, 237, 0.2) !important;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            backdrop-filter: blur(15px);
+        }
+
+        .bg-primary.bg-opacity-10 {
+            background: rgba(245, 158, 11, 0.2) !important;
+        }
+
+        .bg-success.bg-opacity-10, .bg-success.bg-opacity-20 {
+            background: rgba(16, 185, 129, 0.2) !important;
+        }
+
+        .bg-danger.bg-opacity-10, .bg-danger.bg-opacity-20 {
+            background: rgba(239, 68, 68, 0.2) !important;
+        }
+
+        /* Question Numbers */
+        .question-number {
+            background: rgba(245, 158, 11, 0.2) !important;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* Badges */
+        .question-count-badge {
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(245, 158, 11, 0.3) !important;
+        }
+
+        .option-badge {
+            background: rgba(245, 158, 11, 0.2) !important;
+            color: var(--royal-gold) !important;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* Results Page Styling */
+        .success-icon {
+            animation: bounceIn 0.6s ease-out;
+        }
+
+        .score-card {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(124, 58, 237, 0.1)) !important;
+            border: 2px solid var(--royal-gold) !important;
+            transition: all 0.3s ease;
+        }
+
+        .score-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 35px rgba(245, 158, 11, 0.3);
+        }
+
+        .trophy-icon {
+            color: var(--royal-gold) !important;
+            animation: pulse 2s infinite;
+        }
+
+        .score-percentage {
+            color: var(--royal-gold) !important;
+            text-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+        }
+
+        /* Answer Review Cards */
+        .answer-review-card {
+            border: 1px solid var(--dark-border) !important;
+            transition: all 0.3s ease;
+        }
+
+        .answer-review-card:hover {
+            border-color: var(--royal-gold) !important;
+            transform: translateX(5px);
+        }
+
+        .question-header {
+            color: var(--royal-gold) !important;
+        }
+
+        .question-text {
+            color: var(--text-primary) !important;
+        }
+
+        .correct-indicator {
+            background: rgba(16, 185, 129, 0.2) !important;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .incorrect-indicator {
+            background: rgba(239, 68, 68, 0.2) !important;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .correct-answer-badge {
+            background: rgba(16, 185, 129, 0.2) !important;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .user-answer-badge {
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* AI Analysis Card */
+        .analysis-card {
+            border: 2px solid var(--royal-purple) !important;
+        }
+
+        .ai-icon {
+            animation: float 3s ease-in-out infinite;
+        }
+
         .analysis-content {
             font-size: 1.05rem;
             line-height: 1.7;
+            color: var(--text-secondary) !important;
         }
         
         .analysis-content h1,
@@ -447,7 +788,7 @@ window.MathJax = {
         .analysis-content h4,
         .analysis-content h5,
         .analysis-content h6 {
-            color: #667eea;
+            color: var(--royal-gold) !important;
             margin: 1.5rem 0 1rem 0;
             font-weight: 600;
         }
@@ -460,18 +801,117 @@ window.MathJax = {
         
         .analysis-content li {
             margin-bottom: 0.5rem;
+            color: var(--text-secondary) !important;
         }
         
         .analysis-content strong {
-            color: #667eea;
+            color: var(--royal-gold) !important;
             font-weight: 600;
         }
-        
-        .text-white-75 {
-            color: rgba(255, 255, 255, 0.75) !important;
+
+        /* Action Buttons */
+        .action-button {
+            transition: all 0.3s ease;
         }
-        
+
+        .action-button:hover {
+            transform: translateY(-3px);
+        }
+
+        /* Animations */
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        /* Submit Button */
+        .submit-button {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .submit-button:hover::before {
+            left: 100%;
+        }
+
+        /* Enhanced Focus States */
+        .btn:focus {
+            outline: 2px solid var(--royal-gold);
+            outline-offset: 2px;
+        }
+
+        /* Mobile Responsive */
         @media (max-width: 768px) {
+            .fixed-progress-bar {
+                padding: 10px 0;
+            }
+            
+            .fixed-progress-bar .col-auto:first-child {
+                display: none;
+            }
+            
             .card-body {
                 padding: 2rem !important;
             }
@@ -483,17 +923,32 @@ window.MathJax = {
             .analysis-content {
                 font-size: 1rem;
             }
+
+            .question-card:hover {
+                transform: translateY(-4px);
+            }
         }
         
-        /* Print styles for analysis */
+        /* Print styles */
         @media print {
-            .card-header {
-                background: #f8f9fa !important;
-                color: #333 !important;
+            .fixed-progress-bar {
+                display: none;
             }
             
             .bg-gradient-primary {
+                background: white !important;
+            }
+            
+            .card {
+                background: white !important;
+                color: black !important;
+                border: 1px solid #dee2e6 !important;
+                box-shadow: none !important;
+            }
+            
+            .card-header {
                 background: #f8f9fa !important;
+                color: #333 !important;
             }
             
             .analysis-content h1,
@@ -504,6 +959,20 @@ window.MathJax = {
             .analysis-content h6 {
                 color: #333 !important;
             }
+
+            .text-primary, .text-success, .text-dark {
+                color: #333 !important;
+            }
+        }
+
+        /* Smooth Scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Enhanced Button Transitions */
+        .btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
     </style>
 </body>
