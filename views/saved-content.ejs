@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Content - AI Study Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .tiny-create-btn {
+    padding: 4px 12px !important;
+    font-size: 0.75rem !important;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    min-height: auto !important;
+    line-height: 1.2;
+}
+
+.tiny-create-btn i {
+    font-size: 0.75rem;
+    margin-right: 4px;
+}
+
+        .create-btn-small {
+    padding: 8px 20px !important;
+    font-size: 0.9rem !important;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.create-btn-small i {
+    margin-right: 6px;
+}
+
+        /* Your existing royal dark theme CSS stays the same */
+        :root {
+            --royal-purple: #7C3AED;
+            --royal-blue: #2563EB;
+            --royal-gold: #F59E0B;
+            --dark-bg: #0F172A;
+            --dark-card: #1E293B;
+            --dark-border: #334155;
+            --royal-gradient: linear-gradient(135deg, #0F172A 0%, #1E293B 25%, #312E81 50%, #7C3AED 100%);
+            --text-primary: #F8FAFC;
+            --text-secondary: #CBD5E1;
+            --text-muted: #94A3B8;
+        }
+
+        .bg-gradient-primary { background: var(--royal-gradient) !important; }
+
+        .filter-btn {
+            background: rgba(15, 23, 42, 0.8) !important;
+            border: 2px solid var(--royal-purple) !important;
+            color: var(--text-primary) !important;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: linear-gradient(135deg, var(--royal-purple), var(--royal-blue)) !important;
+            border-color: var(--royal-gold) !important;
+            color: white !important;
+            transform: translateY(-2px);
+        }
+
+        .content-card {
+            background: var(--dark-card) !important;
+            border: 2px solid var(--royal-purple) !important;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(124, 58, 237, 0.3) !important;
+            border-color: var(--royal-gold) !important;
+        }
+
+        .content-title { color: var(--royal-gold) !important; font-weight: 600; }
+        .content-meta { color: var(--text-secondary) !important; font-size: 0.9rem; }
+        .grade-badge {
+            background: linear-gradient(135deg, var(--royal-gold), #FCD34D) !important;
+            color: var(--dark-bg) !important;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 12px;
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: var(--text-muted) !important;
+        }
+
+        .welcome-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-muted) !important;
+        }
+
+        .welcome-state i {
+            font-size: 5rem;
+            color: var(--royal-purple);
+            margin-bottom: 2rem;
+        }
+
+        .btn-outline-light {
+            background: rgba(15, 23, 42, 0.8) !important;
+            border: 2px solid var(--royal-purple) !important;
+            color: var(--text-primary) !important;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-light:hover {
+            background: linear-gradient(135deg, var(--royal-purple), var(--royal-blue)) !important;
+            border-color: var(--royal-gold) !important;
+            color: white !important;
+            transform: translateY(-2px);
+        }
+
+        .bg-white.bg-opacity-10 {
+            background: rgba(124, 58, 237, 0.2) !important;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .text-white-50 { color: var(--text-muted) !important; }
+    </style>
+</head>
+<body class="bg-gradient-primary">
+    <div class="container-fluid min-vh-100 py-4">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <!-- Header -->
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <a href="/" class="btn btn-outline-light btn-lg rounded-pill px-4">
+                            <i class="bi bi-arrow-left me-2"></i>
+                            Back to Dashboard
+                        </a>
+                        <div class="text-end">
+                            <small class="text-white-50 d-block">Study Library</small>
+                        </div>
+                    </div>
+
+                    <!-- Title Section -->
+                    <div class="text-center mb-5">
+                        <div class="d-inline-flex align-items-center bg-white bg-opacity-10 rounded-pill px-4 py-2 mb-3">
+                            <i class="bi bi-bookmarks text-white me-2"></i>
+                            <span class="text-white fw-semibold">Saved Content</span>
+                        </div>
+                        <h1 class="display-5 fw-bold text-white mb-2">Your Study Library</h1>
+                        <p class="text-white-50 mb-0">
+                            <i class="bi bi-collection me-2"></i>
+                            Select a content type to view your saved materials
+                        </p>
+                    </div>
+
+                    <!-- Filter/Load Buttons -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="d-flex flex-wrap gap-2 justify-content-center">
+                                <button class="btn filter-btn" onclick="loadQuickNotes()">
+                                    <i class="bi bi-journal-text me-1"></i>
+                                    Load Quick Notes
+                                </button>
+                                <button class="btn filter-btn" onclick="loadFlashcards()" disabled style="opacity: 0.5;">
+                                    <i class="bi bi-card-text me-1"></i>
+                                    Flashcards (Soon)
+                                </button>
+                                <button class="btn filter-btn" onclick="loadQuizzes()" disabled style="opacity: 0.5;">
+                                    <i class="bi bi-question-circle me-1"></i>
+                                    Quizzes (Soon)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Content Area -->
+                    <div id="content-area">
+                        <!-- Welcome State (Initial) -->
+                        <div class="welcome-state" id="welcome-state">
+                            <i class="bi bi-mouse2"></i>
+                            <h3 style="color: var(--text-secondary);">Choose Content Type</h3>
+                            <p>Click on a button above to load your saved study materials</p>
+                        </div>
+                    </div>
+
+                    <!-- Back Button -->
+                    <div class="row mt-5">
+                        <div class="col-12 text-center">
+                            <a href="/" class="btn btn-outline-light btn-lg rounded-pill px-5">
+                                <i class="bi bi-house me-2"></i>
+                                Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Load Quick Notes when button is clicked
+        async function loadQuickNotes() {
+            const contentArea = document.getElementById('content-area');
+            
+            // Show loading state
+            contentArea.innerHTML = `
+                <div class="loading-spinner">
+                    <div class="spinner-border text-primary me-3" role="status"></div>
+                    <span>Loading your quick notes...</span>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/api/quicknotes');
+                const quicknotes = await response.json();
+                
+                if (quicknotes.length > 0) {
+                    displayQuickNotes(quicknotes);
+                } else {
+                    showEmptyState('No quick notes found', 'Create some quick notes to see them here!');
+                }
+            } catch (error) {
+                console.error('Error loading quick notes:', error);
+                showErrorState('Failed to load quick notes');
+            }
+        }
+
+        // Display quick notes in grid format
+        function displayQuickNotes(quicknotes) {
+            const contentArea = document.getElementById('content-area');
+            
+            let html = `<div class="row">`;
+            
+            quicknotes.forEach(note => {
+                html += `
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="content-card p-4" onclick="viewNote(${note.id})">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <span class="grade-badge">
+                                    Level : ${note.gradelevel.toUpperCase()}
+                                </span>
+                                <button class="btn btn-sm btn-danger rounded-circle" onclick="event.stopPropagation(); deleteNote(${note.id})" style="width: 32px; height: 32px; padding: 0;">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                            <h5 class="content-title mb-3">${note.topic}</h5>
+                            <div class="content-meta d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i class="bi bi-calendar3 me-1"></i>
+                                    ${new Date(note.created_at).toLocaleDateString('en-US', { 
+                                        year: 'numeric', 
+                                        month: 'short', 
+                                        day: 'numeric' 
+                                    })}
+                                </span>
+                                <span>
+                                    <i class="bi bi-clock me-1"></i>
+                                    ${new Date(note.created_at).toLocaleTimeString('en-US', { 
+                                        hour: '2-digit', 
+                                        minute: '2-digit' 
+                                    })}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            contentArea.innerHTML = html;
+        }
+
+        // Show empty state
+        function showEmptyState(title, message) {
+    const contentArea = document.getElementById('content-area');
+    contentArea.innerHTML = `
+        <div class="welcome-state">
+            <i class="bi bi-bookmark-x"></i>
+            <h3 style="color: var(--text-secondary);">${title}</h3>
+            <p>${message}</p>
+        </div>
+    `;
+}
+
+
+
+
+        // Show error state
+        function showErrorState(message) {
+            const contentArea = document.getElementById('content-area');
+            contentArea.innerHTML = `
+                <div class="welcome-state">
+                    <i class="bi bi-exclamation-triangle" style="color: #EF4444;"></i>
+                    <h3 style="color: var(--text-secondary);">Error</h3>
+                    <p>${message}</p>
+                    <button class="btn btn-outline-light btn-lg rounded-pill mt-3" onclick="loadQuickNotes()">
+                        <i class="bi bi-arrow-clockwise me-2"></i>
+                        Try Again
+                    </button>
+                </div>
+            `;
+        }
+
+        // View individual note
+        function viewNote(id) {
+            window.location.href = `/view-quicknote/${id}`;
+        }
+
+        // Delete note
+        function deleteNote(id) {
+            if (confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
+                fetch(`/delete-content/quicknotes/${id}`, {
+                    method: 'DELETE',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadQuickNotes(); // Reload the content
+                    } else {
+                        alert('Failed to delete note');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to delete note');
+                });
+            }
+        }
+
+        // Future functions for other content types
+        function loadFlashcards() {
+            // Will implement when flashcards are ready
+            showEmptyState('Flashcards Coming Soon!', 'This feature will be available soon.');
+        }
+
+        function loadQuizzes() {
+            // Will implement when quizzes are ready
+            showEmptyState('Quizzes Coming Soon!', 'This feature will be available soon.');
+        }
+    </script>
+</body>
+</html>
