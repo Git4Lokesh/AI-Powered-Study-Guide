@@ -7,10 +7,16 @@ import dotenv from "dotenv";
 import multer from 'multer';
 import FormData from 'form-data';
 import pg from 'pg';
+import bcrypt from 'bcrypt';
+import passport from 'passport';
+import {Strategy} from 'passport-local';
 dotenv.config();
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
+const saltRounds = 12;
+
+// Database configuration - works for both local and production
 const db = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { 
@@ -48,8 +54,14 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'your-secret-key-here',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }
+    cookie: { 
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 1000 * 60 * 60 * 24
+    }
 }));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 function processMathContent(content) {
     let processedContent = content;
@@ -75,40 +87,243 @@ function processMathContent(content) {
     return processedContent;
 }
 
-
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
+// Database initialization function
 async function initializeDatabase() {
-  try {
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS quicknotes (
-        id SERIAL PRIMARY KEY,
-        topic VARCHAR(255) NOT NULL,
-        gradelevel VARCHAR(50) NOT NULL,
-        note_content TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-    console.log("Database initialized successfully");
-  } catch (error) {
-    console.error("Database initialization failed:", error);
-  }
+    try {
+        // Users table
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        // Quicknotes table with user_id
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS quicknotes (
+                id SERIAL PRIMARY KEY,
+                topic VARCHAR(255) NOT NULL,
+                gradelevel VARCHAR(50) NOT NULL,
+                note_content TEXT NOT NULL,
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        // Flashcards table
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS flashcards (
+                id SERIAL PRIMARY KEY,
+                topic VARCHAR(255) NOT NULL,
+                grade_level VARCHAR(50) NOT NULL,
+                card_content JSONB NOT NULL,
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(topic, grade_level, user_id)
+            );
+        `);
+
+        // Quiz table
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS quiz (
+                id SERIAL PRIMARY KEY,
+                topic VARCHAR(255) NOT NULL,
+                gradelevel VARCHAR(50) NOT NULL,
+                content JSONB NOT NULL,
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        console.log("Database initialized successfully");
+    } catch (error) {
+        console.error("Database initialization failed:", error);
+    }
 }
 
 // Initialize database on startup
 initializeDatabase();
-app.get("/", (req, res) => {
-    res.render("dashboard.ejs");
+
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
 });
 
-app.post("/generate", upload.single('document'), async (req, res) => {
+// Authentication middleware
+function ensureAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.redirect('/login');
+}
+
+// Routes
+app.get("/", ensureAuthenticated, async (req, res) => {
+    try {
+        const response = await db.query(`
+            SELECT SUM(row_count) AS total_rows FROM (
+                SELECT COUNT(*) AS row_count FROM quiz WHERE user_id=$1
+                UNION ALL
+                SELECT COUNT(*) AS row_count FROM quicknotes where user_id=$1
+                UNION ALL
+                SELECT COUNT(*) AS row_count FROM flashcards where user_id=$1
+            ) AS counts
+        `, [req.user.id]);
+        
+        const savedContentCount = parseInt(response.rows[0].total_rows) || 0;
+        
+        res.render("dashboard.ejs", {
+            savedContentCount: savedContentCount,
+            user: req.user
+        });
+    } catch (error) {
+        console.error('Error counting saved content:', error);
+        res.render("dashboard.ejs", {
+            savedContentCount: 0,
+            user: req.user
+        });
+    }
+});
+
+app.get("/signup", (req, res) => {
+    res.render("signup.ejs");
+});
+
+app.get("/login", (req, res) => {
+    res.render("login.ejs");
+});
+
+app.post("/signup", async (req, res) => {
+    try {
+        const name = req.body.fullName;
+        const email = req.body.email;
+        const password = req.body.password;
+        
+        const result = await db.query("SELECT * FROM users WHERE email=$1", [email]);
+        if (result.rowCount > 0) {
+            return res.send("Email already exists, try logging in");
+        }
+        
+        const hash = await bcrypt.hash(password, saltRounds);
+        const userresult = await db.query("INSERT INTO users (email,password,name) VALUES ($1,$2,$3) RETURNING *", [email, hash, name]);
+        const user = userresult.rows[0];
+        
+        req.login(user, (err) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).send("Login failed");
+            }
+            res.redirect("/");
+        });
+    } catch (error) {
+        console.error('Signup error:', error);
+        res.status(500).send("Registration failed");
+    }
+});
+
+app.post("/login", (req, res, next) => {
+    console.log("=== LOGIN ATTEMPT ===");
+    console.log("Email:", req.body.email);
+    console.log("Password provided:", !!req.body.password);
+    
+    passport.authenticate("local", (err, user, info) => {
+        console.log("Passport callback - Error:", err);
+        console.log("Passport callback - User:", !!user);
+        console.log("Passport callback - Info:", info);
+        
+        if (err) {
+            console.error("Authentication error:", err);
+            return next(err);
+        }
+        
+        if (!user) {
+            console.log("Authentication failed - no user returned");
+            return res.redirect("/login?error=invalid");
+        }
+        
+        req.logIn(user, (loginErr) => {
+            if (loginErr) {
+                console.error("Login error:", loginErr);
+                return next(loginErr);
+            }
+            console.log("✅ Login successful - redirecting to dashboard");
+            return res.redirect("/");
+        });
+    })(req, res, next);
+});
+
+app.post("/logout", (req, res) => {
+    req.logout((err) => {
+        if (err) {
+            console.error('Logout error:', err);
+            return res.status(500).send('Logout failed');
+        }
+        res.redirect("/login");
+    });
+});
+
+// Passport configuration
+passport.use(new Strategy({
+    usernameField: 'email',
+    passwordField: 'password'
+}, async function(email, password, done) {
+    try {
+        console.log("=== PASSPORT STRATEGY ===");
+        console.log("Attempting auth for:", email);
+        
+        if (!email || !password) {
+            console.log("❌ Missing email or password");
+            return done(null, false, { message: 'Email and password required' });
+        }
+        
+        const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+        console.log("Database query returned:", result.rowCount, "rows");
+        
+        if (result.rowCount === 0) {
+            console.log("❌ No user found with email:", email);
+            return done(null, false, { message: 'Invalid credentials' });
+        }
+        
+        const user = result.rows[0];
+        console.log("✅ User found - ID:", user.id);
+        
+        const isMatch = await bcrypt.compare(password, user.password);
+        console.log("Password comparison result:", isMatch);
+        
+        if (isMatch) {
+            console.log("✅ Password matches - authentication successful");
+            return done(null, user);
+        } else {
+            console.log("❌ Password does not match");
+            return done(null, false, { message: 'Invalid credentials' });
+        }
+        
+    } catch (error) {
+        console.error("❌ Strategy error:", error);
+        return done(error);
+    }
+}));
+
+passport.serializeUser((user, cb) => {
+    const { password, ...userWithoutPassword } = user;
+    cb(null, userWithoutPassword);
+});
+
+passport.deserializeUser((user, cb) => {
+    cb(null, user);
+});
+
+// Main generation route
+app.post("/generate", ensureAuthenticated, upload.single('document'), async (req, res) => {
     const topic = req.body.topic;
     const level = req.body.gradeLevel;
     const type = req.body.studyType;
     const method = req.body.inputMethod;
     req.session.topic = topic;
     req.session.level = level;
+    
     if (!level || !type) {
         return res.status(400).send("Please fill in all required fields");
     }
@@ -119,17 +334,17 @@ app.post("/generate", upload.single('document'), async (req, res) => {
         }
         
         if (type === "quicknotes") {
-    try {
-        const response = await axios.post("https://api.perplexity.ai/chat/completions", {
-            model: "sonar-pro",
-            messages: [
-                {
-                    "role": "system",
-                    "content": "You are an expert educator. Create study materials in HTML format with proper tags. Never show your research process or mention search results. Start directly with the educational content. For ALL mathematical expressions, use proper notation enclosed in $$ (e.g., $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$)"
-                },
-                {
-                    "role": "user",
-                    "content": `Write extremely thorough study notes on ${topic} for ${level} level students. The student should be able to revise this for exams.
+            try {
+                const response = await axios.post("https://api.perplexity.ai/chat/completions", {
+                    model: "sonar-pro",
+                    messages: [
+                        {
+                            "role": "system",
+                            "content": "You are an expert educator. Create study materials in HTML format with proper tags. Never show your research process or mention search results. Start directly with the educational content. For ALL mathematical expressions, use proper notation enclosed in $$ (e.g., $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$)"
+                        },
+                        {
+                            "role": "user",
+                            "content": `Write extremely thorough study notes on ${topic} for ${level} level students. The student should be able to revise this for exams.
 
 Format Requirements:
 - Start with a clear definition
@@ -145,26 +360,26 @@ Format Requirements:
 
 Topic: ${topic}
 Level: ${level}`
-                }
-            ]
-        }, {
-            headers: {
-                Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`
+                        }
+                    ]
+                }, {
+                    headers: {
+                        Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`
+                    }
+                });
+                
+                req.session.content = response.data.choices[0].message.content
+                res.render("quicknotes.ejs", {
+                    topic: topic,
+                    gradeLevel: level,
+                    content: response.data.choices[0].message.content
+                });
+                
+            } catch (error) {
+                console.error("Quick notes error:", error.message);
+                res.status(500).send("Failed to generate notes. Please try again.");
             }
-        });
-        req.session.content = response.data.choices[0].message.content
-        res.render("quicknotes.ejs", {
-            topic: topic,
-            gradeLevel: level,
-            content: response.data.choices[0].message.content
-        });
-        
-    } catch (error) {
-        console.error("Quick notes error:", error.message);
-        res.status(500).send("Failed to generate notes. Please try again.");
-    }
-}
-
+        }
         else if (type === "flashcards") {
             try {
                 const response = await axios.post("https://api.perplexity.ai/chat/completions", {
@@ -350,16 +565,16 @@ Grade Level: ${level}`
             }
             
             if (type === "quicknotes") {
-    const response = await axios.post("https://api.perplexity.ai/chat/completions", {
-        model: "sonar-pro",
-        messages: [
-            {
-                "role": "system",
-                "content": "You are an expert educator specializing in analyzing comprehensive academic course materials. Transform content into well-organized study notes with HTML formatting. ALL mathematical expressions MUST use proper notation enclosed in $$ (e.g., $$F = ma$$)"
-            },
-            {
-                "role": "user",
-                "content": `Transform the following comprehensive course material into detailed study notes for ${level} level students:
+                const response = await axios.post("https://api.perplexity.ai/chat/completions", {
+                    model: "sonar-pro",
+                    messages: [
+                        {
+                            "role": "system",
+                            "content": "You are an expert educator specializing in analyzing comprehensive academic course materials. Transform content into well-organized study notes with HTML formatting. ALL mathematical expressions MUST use proper notation enclosed in $$ (e.g., $$F = ma$$)"
+                        },
+                        {
+                            "role": "user",
+                            "content": `Transform the following comprehensive course material into detailed study notes for ${level} level students:
 
 COMPREHENSIVE COURSE MATERIAL:
 ${extractedText}
@@ -371,21 +586,20 @@ Create study notes with these requirements:
 - ALL mathematical expressions MUST use proper notation enclosed in $$
 
 Format: Use HTML formatting with proper tags.`
+                        }
+                    ]
+                }, {
+                    headers: {
+                        Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`
+                    }
+                });
+                
+                res.render("quicknotes.ejs", {
+                    topic: "Course Material Analysis",
+                    gradeLevel: level,
+                    content: response.data.choices[0].message.content 
+                });
             }
-        ]
-    }, {
-        headers: {
-            Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`
-        }
-    });
-    
-    res.render("quicknotes.ejs", {
-        topic: "Course Material Analysis",
-        gradeLevel: level,
-        content: response.data.choices[0].message.content 
-    });
-}
-
             else if (type === "flashcards") {
                 const response = await axios.post("https://api.perplexity.ai/chat/completions", {
                     "model": "sonar-pro",
@@ -505,7 +719,8 @@ Requirements:
     }
 });
 
-app.post("/flashcard", (req, res) => {
+// Flashcard navigation
+app.post("/flashcard", ensureAuthenticated, (req, res) => {
     if (!req.session.flashcards) {
         return res.redirect('/');
     }
@@ -522,17 +737,18 @@ app.post("/flashcard", (req, res) => {
     });
 });
 
-app.post("/quiz", async (req, res) => {
+// Quiz submission and analysis
+app.post("/quiz", ensureAuthenticated, async (req, res) => {
     var showResults = true;
     var userAnswers = [];
     var score = 0;
-for(let i = 0; i < 10; i++) {
-    userAnswers.push(req.body[`answer_${i}`]);
-    if(req.body[`answer_${i}`] === req.session.content[i].answer) {
-        score++;
+    
+    for(let i = 0; i < 10; i++) {
+        userAnswers.push(req.body[`answer_${i}`]);
+        if(req.body[`answer_${i}`] === req.session.content[i].answer) {
+            score++;
+        }
     }
-}
-
 
     const prompt = `Analyze this quiz performance:
         
@@ -595,8 +811,10 @@ IMPORTANT: Format your response in proper HTML with:
         score:score,
         performanceAnalysis: processedAnalysis
     })
-})
-app.post('/api/expand-text', async (req, res) => {
+});
+
+// Text expansion API
+app.post('/api/expand-text', ensureAuthenticated, async (req, res) => {
     try {
         const { text, type, prompt, topic, gradeLevel, customQuestion } = req.body;
         
@@ -672,50 +890,272 @@ Text to expand: "${text}"`;
         res.status(500).json({ error: 'Failed to generate expansion' });
     }
 });
-app.post("/save-quicknotes", async (req, res) => {
+
+// Save content routes
+app.post("/save-quicknotes", ensureAuthenticated, async (req, res) => {
     try {
         const topic = req.body.topic;
         const level = req.body.gradeLevel;
         const content = req.body.content;
         
-            await db.query(
-            "INSERT INTO quicknotes(topic, gradeLevel, note_content) VALUES ($1,$2,$3)",
-            [topic, level, content]
+        await db.query(
+            "INSERT INTO quicknotes(topic, gradeLevel, note_content, user_id) VALUES ($1,$2,$3,$4)",
+            [topic, level, content, req.user.id]
         );
-        res.render('quicknotes',{
-            topic:topic,
+        
+        res.render('quicknotes.ejs', {
+            topic: topic,
             gradeLevel: level,
-            content:content,
-            saved:true
-
-        })
+            content: content,
+            saved: true
+        });
     } catch (error) {
         console.error('Error saving notes:', error);
-        res.status(500).send("Error saving notes")
+        res.status(500).send("Error saving notes");
     }
 });
-app.get("/saved-content",(req,res)=>{
+
+app.post("/save-flashcards", ensureAuthenticated, async (req, res) => {
+    try {
+        const topic = req.body.topic;
+        const gradeLevel = req.body.gradeLevel;
+        
+        await db.query(`
+            INSERT INTO flashcards(topic, grade_level, card_content, user_id) 
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT (topic, grade_level, user_id) 
+            DO UPDATE SET card_content = $3
+        `, [topic, gradeLevel, req.body.content, req.user.id]);
+        
+        res.render("flashcards.ejs", {
+            topic: topic,
+            gradeLevel: gradeLevel,
+            content: JSON.parse(req.body.content),
+            showAnswer: req.body.showAnswer === 'true',
+            currentIndex: parseInt(req.body.index) || 0, 
+            savedMessage: "Flashcards saved successfully!"
+        });
+        
+    } catch (error) {
+        console.error('Error saving flashcards:', error);
+        res.render("flashcards.ejs", {
+            topic: req.body.topic || '',
+            gradeLevel: req.body.gradeLevel || '',
+            content: req.body.content ? JSON.parse(req.body.content) : [],
+            showAnswer: req.body.showAnswer === 'true',
+            currentIndex: parseInt(req.body.index) || 0,
+            savedMessage: null,
+            errorMessage: "Failed to save flashcards"
+        });
+    }
+});
+
+app.post("/save-quiz", ensureAuthenticated, async (req, res) => {
+    try {
+        const topic = req.body.topic;
+        const gradeLevel = req.body.gradeLevel;
+        const content = req.body.content;
+        
+        await db.query("INSERT INTO quiz(topic,gradeLevel,content,user_id) VALUES ($1,$2,$3,$4)", [topic, gradeLevel, content, req.user.id]);
+        
+        res.render("quiz.ejs", {
+            topic: topic,
+            gradeLevel: gradeLevel,
+            content: JSON.parse(content),
+            score: parseInt(req.body.score),
+            userAnswers: JSON.parse(req.body.userAnswers),
+            performanceAnalysis: req.body.performanceAnalysis,
+            showResults: true,
+            saved: true
+        });
+    } catch (error) {
+        console.error('Error saving quiz:', error);
+        res.status(500).send("Error saving quiz");
+    }
+});
+
+// Saved content routes
+app.get("/saved-content", ensureAuthenticated, (req, res) => {
     res.render("saved-content.ejs");
 });
-app.get("/api/quicknotes",async (req,res)=>{
-    const response = await db.query("SELECT id,topic,gradelevel,created_at FROM quicknotes");
-    res.json(response.rows);
+
+// API routes for saved content
+app.get("/api/quicknotes", ensureAuthenticated, async (req, res) => {
+    try {
+        const response = await db.query("SELECT id,topic,gradelevel,created_at FROM quicknotes WHERE user_id=$1 ORDER BY created_at DESC", [req.user.id]);
+        res.json(response.rows);
+    } catch (error) {
+        console.error('Error fetching quicknotes:', error);
+        res.status(500).json({ error: 'Failed to fetch quicknotes' });
+    }
 });
-app.get("/view-quicknote/:id",async (req,res)=>{
-    const id = req.params.id;
-    const response = await db.query("SELECT topic,gradelevel,note_content FROM quicknotes WHERE id=$1",[id]);
-    const result = response.rows[0];
-    res.render("quicknotes.ejs",{
-        topic:result.topic,
-        gradeLevel:result.gradelevel,
-        content:result.note_content
-    })
+
+app.get("/api/flashcards", ensureAuthenticated, async (req, res) => {
+    try {
+        const response = await db.query("SELECT * FROM flashcards WHERE user_id = $1 ORDER BY created_at DESC", [req.user.id]);
+        res.json(response.rows);
+    } catch (error) {
+        console.error('Error fetching flashcards:', error);
+        res.status(500).json({ error: 'Failed to fetch flashcards' });
+    }
 });
-app.delete("/delete-content/quicknotes/:id",async(req,res)=>{
-    const id = req.params.id;
-    await db.query("DELETE FROM quicknotes WHERE id=$1",[id]);
-    res.json({success:true});
-})
 
+app.get("/api/quiz", ensureAuthenticated, async (req, res) => {
+    try {
+        const response = await db.query("SELECT * FROM quiz WHERE user_id = $1 ORDER BY created_at DESC", [req.user.id]);
+        res.json(response.rows);
+    } catch (error) {
+        console.error('Error fetching quizzes:', error);
+        res.status(500).json({ error: 'Failed to fetch quizzes' });
+    }
+});
 
+// View saved content routes
+app.get("/view-quicknote/:id", ensureAuthenticated, async (req, res) => {
+    try {
+        const id = req.params.id;
+        const response = await db.query("SELECT topic,gradelevel,note_content FROM quicknotes WHERE id=$1 AND user_id=$2", [id, req.user.id]);
+        
+        if (response.rows.length === 0) {
+            return res.status(404).send('Note not found');
+        }
+        
+        const result = response.rows[0];
+        res.render("quicknotes.ejs", {
+            topic: result.topic,
+            gradeLevel: result.gradelevel,
+            content: result.note_content
+        });
+    } catch (error) {
+        console.error('Error fetching quicknote:', error);
+        res.status(500).send('Failed to load note');
+    }
+});
 
+app.get("/view-flashcards/:id", ensureAuthenticated, async (req, res) => {
+    try {
+        const id = req.params.id;
+        const currentIndex = parseInt(req.query.currentIndex) || 0;
+        const showAnswer = req.query.showAnswer === 'true';
+        
+        const response = await db.query("SELECT topic,grade_level,card_content FROM flashcards WHERE id=$1 AND user_id=$2", [id, req.user.id]);
+        
+        if (response.rows.length === 0) {
+            return res.status(404).send('Flashcard set not found');
+        }
+        
+        const content = response.rows[0];
+        
+        req.session.flashcards = content.card_content;
+        req.session.topic = content.topic;
+        req.session.gradeLevel = content.grade_level;
+        
+        res.render("flashcards.ejs", {
+            topic: content.topic,
+            gradeLevel: content.grade_level,
+            content: content.card_content,
+            currentIndex: currentIndex,
+            showAnswer: showAnswer,
+            savedMessage: null
+        });
+    } catch (error) {
+        console.error('Error fetching flashcard:', error);
+        res.status(500).send('Failed to load flashcard set');
+    }
+});
+
+app.get("/view-quiz/:id", ensureAuthenticated, async (req, res) => {
+    try {
+        const id = req.params.id;
+        const response = await db.query("SELECT topic,gradeLevel,content FROM quiz WHERE id=$1 AND user_id=$2", [id, req.user.id]);
+        
+        if (response.rows.length === 0) {
+            return res.status(404).send('Quiz not found');
+        }
+        
+        const result = response.rows[0];
+        req.session.topic = result.topic;
+        req.session.gradeLevel = result.gradelevel;
+        req.session.content = result.content;
+        
+        res.render("quiz.ejs", {
+            topic: req.session.topic,
+            gradeLevel: req.session.gradeLevel,
+            content: req.session.content,
+            showResults: false
+        });
+    } catch (error) {
+        console.error('Error fetching quiz:', error);
+        res.status(500).send('Failed to load quiz');
+    }
+});
+
+// Delete content routes
+app.delete("/delete-content/quicknotes/:id", ensureAuthenticated, async (req, res) => {
+    try {
+        const id = req.params.id;
+        const result = await db.query("DELETE FROM quicknotes WHERE id=$1 AND user_id=$2 RETURNING id", [id, req.user.id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'Note not found' 
+            });
+        }
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting quicknote:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to delete note' 
+        });
+    }
+});
+
+app.delete("/delete-content/flashcards/:id", ensureAuthenticated, async (req, res) => {
+    try {
+        const id = req.params.id;
+        const result = await db.query("DELETE FROM flashcards WHERE id=$1 AND user_id=$2 RETURNING id", [id, req.user.id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'Flashcard set not found' 
+            });
+        }
+        
+        res.json({ 
+            success: true, 
+            message: 'Flashcard set deleted successfully' 
+        });
+    } catch (error) {
+        console.error('Error deleting flashcard:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to delete flashcard set' 
+        });
+    }
+});
+
+app.delete("/delete-content/quiz/:id", ensureAuthenticated, async (req, res) => {
+    try {
+        const id = req.params.id;
+        const result = await db.query("DELETE FROM quiz WHERE id=$1 AND user_id=$2 RETURNING id", [id, req.user.id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'Quiz not found' 
+            });
+        }
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting quiz:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to delete quiz' 
+        });
+    }
+});
