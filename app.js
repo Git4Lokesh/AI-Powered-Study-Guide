@@ -111,7 +111,7 @@ async function initializeDatabase() {
         }
 
         try {
-            await db.query(`ALTER TABLE flashcards ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE;`);
+            await db.query("CREATE TABLE flashcards(id SERIAL PRIMARY KEY,topic text,grade_level text,card_content jsonb,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,user_id int REFERENCES users(id) ON DELETE CASCADE);")
         } catch (err) {
             if (!err.message.includes('already exists')) {
                 console.error('Error adding user_id to flashcards:', err.message);
@@ -119,7 +119,7 @@ async function initializeDatabase() {
         }
 
         try {
-            await db.query(`ALTER TABLE quiz ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE;`);
+            await db.query("CREATE TABLE quiz(id SERIAL PRIMARY KEY,topic text,gradelevel text,content jsonb,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,user_id int REFERENCES users(id) ON DELETE CASCADE);")
         } catch (err) {
             if (!err.message.includes('already exists')) {
                 console.error('Error adding user_id to quiz:', err.message);
@@ -1147,4 +1147,5 @@ app.delete("/delete-content/quiz/:id", ensureAuthenticated, async (req, res) => 
         });
     }
 });
+
 
