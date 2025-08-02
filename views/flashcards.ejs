@@ -42,6 +42,59 @@
             --text-primary: #F8FAFC;
             --text-secondary: #CBD5E1;
             --text-muted: #94A3B8;
+            --success-green: #10B981;
+            --success-light: #34D399;
+        }
+
+        /* Success Banner Styles */
+        .success-banner {
+            position: fixed;
+            top: 60px; /* Below the progress bar */
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, var(--success-green) 0%, var(--success-light) 100%) !important;
+            color: white !important;
+            padding: 12px 0;
+            text-align: center;
+            z-index: 1049;
+            border-bottom: 2px solid var(--royal-gold);
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+            backdrop-filter: blur(20px);
+            animation: slideDownFadeIn 0.5s ease-out;
+        }
+
+        .success-banner .container-fluid {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success-banner i {
+            font-size: 1.2rem;
+            margin-right: 10px;
+            color: white !important;
+        }
+
+        .success-banner .success-text {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: white !important;
+        }
+
+        @keyframes slideDownFadeIn {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Adjust main content when banner is present */
+        .with-success-banner {
+            padding-top: 140px !important; /* Extra space for banner */
         }
 
         /* Text Selection Popup */
@@ -231,7 +284,17 @@
         </div>
     </div>
 
-    <div class="container-fluid min-vh-100 py-4" style="padding-top: 80px !important;">
+    <!-- Success Banner -->
+    <% if (typeof savedMessage !== 'undefined' && savedMessage) { %>
+        <div class="success-banner">
+            <div class="container-fluid">
+                <i class="bi bi-check-circle"></i>
+                <span class="success-text"><%= savedMessage %></span>
+            </div>
+        </div>
+    <% } %>
+
+    <div class="container-fluid min-vh-100 py-4 <%= typeof savedMessage !== 'undefined' && savedMessage ? 'with-success-banner' : '' %>" style="padding-top: 80px !important;">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-10 col-xl-8">
@@ -346,19 +409,32 @@
 
                     <!-- Quick Actions -->
                     <div class="row mt-5">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-lg-3 col-md-6 mb-3">
                             <a href="/" class="btn btn-outline-light btn-lg w-100 py-3">
                                 <i class="bi bi-house me-2"></i>
                                 Back to Dashboard
                             </a>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-lg-3 col-md-6 mb-3">
                             <form method="POST" action="/flashcard" class="d-inline w-100">
                                 <input type="hidden" name="currentIndex" value="0">
                                 <input type="hidden" name="showAnswer" value="false">
                                 <button type="submit" class="btn btn-light btn-lg w-100 py-3">
                                     <i class="bi bi-arrow-clockwise me-2"></i>
                                     Restart Cards
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-lg-6 mb-3">
+                            <form method="POST" action="/save-flashcards" class="d-inline w-100">
+                                <input type="hidden" name="topic" value="<%= topic %>">
+                                <input type="hidden" name="gradeLevel" value="<%= gradeLevel %>">
+                                <input type="hidden" name="content" value='<%= JSON.stringify(content)%>'>
+                                <input type="hidden" name="index" value="<%= currentIndex %>">
+                                <input type="hidden" name="showAnswer" value="<%= showAnswer %>">
+                                <button type="submit" class="btn btn-success btn-lg w-100 py-3">
+                                    <i class="bi bi-bookmark-check me-2"></i>
+                                    Save Flashcards
                                 </button>
                             </form>
                         </div>
@@ -729,7 +805,7 @@
         
         /* Print styles */
         @media print {
-            .fixed-progress-bar {
+            .fixed-progress-bar, .success-banner {
                 display: none;
             }
             
