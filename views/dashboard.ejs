@@ -8,92 +8,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <!-- Custom CSS (loads after Bootstrap) -->
-    <link rel="stylesheet" href="/css/style.css">
     
     <style>
-        /* Floating Saved Content Button */
-.floating-saved-btn {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    z-index: 1000;
-    background: linear-gradient(135deg, var(--royal-purple) 0%, var(--royal-blue) 100%) !important;
-    border: 2px solid var(--royal-gold) !important;
-    color: white !important;
-    border-radius: 50px !important;
-    padding: 15px 25px !important;
-    font-weight: 600;
-    text-decoration: none;
-    box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(10px);
-    animation: floatIn 0.6s ease-out;
-}
-
-.floating-saved-btn:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 15px 35px rgba(124, 58, 237, 0.6);
-    color: white !important;
-    border-color: var(--royal-gold) !important;
-}
-
-.floating-saved-btn:focus {
-    outline: 2px solid var(--royal-gold);
-    outline-offset: 3px;
-    color: white !important;
-}
-
-.floating-saved-btn .badge {
-    background: var(--royal-gold) !important;
-    color: var(--dark-bg) !important;
-    font-size: 0.7rem;
-    font-weight: 700;
-    padding: 4px 8px;
-    border-radius: 10px;
-    margin-left: 8px;
-    animation: pulse 2s infinite;
-}
-
-@keyframes floatIn {
-    from {
-        opacity: 0;
-        transform: translateY(100px) scale(0.8);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .floating-saved-btn {
-        bottom: 20px;
-        right: 20px;
-        padding: 12px 20px !important;
-        font-size: 0.9rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .floating-saved-btn {
-        bottom: 20px;
-        right: 15px;
-        padding: 10px 16px !important;
-        font-size: 0.85rem;
-    }
-    
-    .floating-saved-btn .btn-text {
-        display: none; /* Hide text on very small screens, show only icon */
-    }
-}
-
         /* Royal Dark Theme Custom Styles */
         :root {
             --royal-purple: #7C3AED;
@@ -109,25 +25,136 @@
         }
 
         /* Background Gradient */
-        .bg-gradient-primary {
+        body {
             background: var(--royal-gradient) !important;
             min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        /* Navigation Bar */
+        .navbar-custom {
+            background: rgba(15, 23, 42, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 2px solid var(--royal-purple);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar-brand {
+            color: var(--royal-gold) !important;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .navbar-brand:hover {
+            color: #FCD34D !important;
+        }
+
+        /* User Welcome Section */
+        .user-welcome {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--royal-purple);
+            border-radius: 50px;
+            padding: 8px 20px;
+            color: var(--text-primary);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--royal-purple), var(--royal-blue));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Enhanced Sign Out Button */
+        .btn-signout {
+            background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%) !important;
+            border: 2px solid #FCA5A5 !important;
+            color: white !important;
+            font-weight: 600;
+            padding: 8px 20px !important;
+            border-radius: 25px !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-signout:hover {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
+            border-color: #FED7D7 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 38, 38, 0.5);
+            color: white !important;
+        }
+
+        .btn-signout:focus {
+            outline: 2px solid #FCA5A5;
+            outline-offset: 2px;
+            color: white !important;
         }
 
         /* Main Card Dark Theme */
         .card {
             background: var(--dark-card) !important;
-            border: 1px solid var(--dark-border) !important;
+            border: 2px solid var(--dark-border) !important;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
+            border-radius: 20px !important;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.9) !important;
+            border-color: var(--royal-purple) !important;
         }
 
         .card-body {
             color: var(--text-primary);
+            padding: 3rem !important;
+        }
+
+        /* Hero Section */
+        .hero-badge {
+            background: rgba(124, 58, 237, 0.2) !important;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: var(--royal-gold) !important;
+            border-radius: 50px;
+            padding: 12px 24px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hero-title {
+            color: var(--text-primary) !important;
+            font-weight: 800;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .hero-subtitle {
+            color: var(--text-secondary) !important;
+            font-size: 1.25rem;
+            margin-bottom: 0;
         }
 
         /* Form Labels */
         .form-label {
             color: var(--text-primary) !important;
+            font-weight: 600;
+            margin-bottom: 1rem;
         }
 
         .form-label .text-primary {
@@ -137,14 +164,18 @@
         /* Form Controls */
         .form-control, .form-select {
             background-color: var(--dark-bg) !important;
-            border: 1px solid var(--dark-border) !important;
+            border: 2px solid var(--dark-border) !important;
             color: var(--text-primary) !important;
+            border-radius: 12px !important;
+            padding: 12px 16px !important;
+            font-size: 1rem;
+            transition: all 0.3s ease;
         }
 
         .form-control:focus, .form-select:focus {
             background-color: var(--dark-bg) !important;
             border-color: var(--royal-purple) !important;
-            box-shadow: 0 0 0 0.2rem rgba(124, 58, 237, 0.25) !important;
+            box-shadow: 0 0 0 0.25rem rgba(124, 58, 237, 0.25) !important;
             color: var(--text-primary) !important;
         }
 
@@ -155,21 +186,33 @@
         /* Input Group Text */
         .input-group-text {
             background-color: var(--dark-bg) !important;
-            border: 1px solid var(--dark-border) !important;
+            border: 2px solid var(--dark-border) !important;
             color: var(--royal-gold) !important;
+            border-radius: 12px 0 0 12px !important;
+        }
+
+        .input-group .form-control {
+            border-radius: 0 12px 12px 0 !important;
         }
 
         /* Button Styles */
         .btn-primary {
             background: linear-gradient(135deg, var(--royal-purple) 0%, var(--royal-blue) 100%) !important;
-            border: none !important;
+            border: 2px solid var(--royal-gold) !important;
             color: white !important;
+            font-weight: 600;
+            padding: 15px 30px !important;
+            border-radius: 12px !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
         }
 
         .btn-primary:hover, .btn-primary:focus {
             background: linear-gradient(135deg, #8B5CF6 0%, #3B82F6 100%) !important;
-            transform: translateY(-1px);
-            box-shadow: 0 10px 25px rgba(124, 58, 237, 0.4) !important;
+            border-color: var(--royal-gold) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(124, 58, 237, 0.6) !important;
+            color: white !important;
         }
 
         .btn-outline-primary {
@@ -177,6 +220,8 @@
             border: 2px solid var(--dark-border) !important;
             color: var(--text-primary) !important;
             transition: all 0.3s ease;
+            border-radius: 12px !important;
+            font-weight: 500;
         }
 
         .btn-outline-primary:hover, .btn-outline-primary:focus {
@@ -189,51 +234,103 @@
 
         .btn-check:checked + .btn-outline-primary {
             background: linear-gradient(135deg, var(--royal-purple), var(--royal-blue)) !important;
-            border-color: var(--royal-purple) !important;
+            border-color: var(--royal-gold) !important;
             color: white !important;
             box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
         }
 
         /* Radio Button Group */
         .btn-group .btn-outline-primary:first-child {
-            border-top-left-radius: 0.5rem !important;
-            border-bottom-left-radius: 0.5rem !important;
+            border-radius: 12px 0 0 12px !important;
         }
 
         .btn-group .btn-outline-primary:last-child {
-            border-top-right-radius: 0.5rem !important;
-            border-bottom-right-radius: 0.5rem !important;
+            border-radius: 0 12px 12px 0 !important;
         }
 
         /* Study Type Cards */
-        .btn-outline-primary.btn-lg.w-100 {
+        .study-type-card {
             background: var(--dark-bg) !important;
             border: 2px solid var(--dark-border) !important;
             color: var(--text-primary) !important;
-            border-radius: 1rem !important;
+            border-radius: 16px !important;
             transition: all 0.3s ease;
+            padding: 24px !important;
         }
 
-        .btn-outline-primary.btn-lg.w-100:hover {
+        .study-type-card:hover {
             border-color: var(--royal-gold) !important;
             box-shadow: 0 8px 25px rgba(245, 158, 11, 0.2);
             transform: translateY(-3px);
         }
 
-        .btn-check:checked + .btn-outline-primary.btn-lg.w-100 {
+        .btn-check:checked + .study-type-card {
             background: linear-gradient(135deg, var(--royal-purple), var(--royal-blue)) !important;
             border-color: var(--royal-gold) !important;
             color: white !important;
             box-shadow: 0 15px 35px rgba(124, 58, 237, 0.4);
         }
 
-        /* Icons in buttons */
-        .btn-outline-primary .bi {
+        /* Icons */
+        .study-type-card .bi {
             color: var(--royal-gold) !important;
         }
 
-        .btn-check:checked + .btn-outline-primary .bi {
+        .btn-check:checked + .study-type-card .bi {
             color: var(--royal-gold) !important;
+        }
+
+        /* Floating Saved Content Button */
+        .floating-saved-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            background: linear-gradient(135deg, var(--royal-purple) 0%, var(--royal-blue) 100%) !important;
+            border: 2px solid var(--royal-gold) !important;
+            color: white !important;
+            border-radius: 50px !important;
+            padding: 15px 25px !important;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            animation: floatIn 0.6s ease-out;
+        }
+
+        .floating-saved-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(124, 58, 237, 0.6);
+            color: white !important;
+            border-color: var(--royal-gold) !important;
+        }
+
+        .floating-saved-btn .badge {
+            background: var(--royal-gold) !important;
+            color: var(--dark-bg) !important;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 10px;
+            margin-left: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes floatIn {
+            from {
+                opacity: 0;
+                transform: translateY(100px) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
 
         /* Text Colors */
@@ -249,52 +346,15 @@
             color: var(--text-muted) !important;
         }
 
-        /* Header Badge */
-        .bg-white.bg-opacity-10 {
-            background: rgba(124, 58, 237, 0.2) !important;
-            border: 1px solid rgba(245, 158, 11, 0.3);
-        }
-
-        /* Select Options (for better browser compatibility) */
+        /* Select Options */
         .form-select option {
             background-color: var(--dark-card);
             color: var(--text-primary);
         }
 
-        /* Hover Effects */
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.9) !important;
-            transition: all 0.3s ease;
-        }
-
-        /* Custom Scrollbar for select dropdowns */
-        .form-select::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .form-select::-webkit-scrollbar-track {
-            background: var(--dark-bg);
-        }
-
-        .form-select::-webkit-scrollbar-thumb {
-            background: var(--royal-purple);
-            border-radius: 4px;
-        }
-
-        /* Ensure proper text contrast */
-        .fw-semibold {
-            color: var(--text-primary) !important;
-        }
-
-        /* Footer text */
-        .text-white-50 {
+        /* Footer */
+        .footer-text {
             color: var(--text-muted) !important;
-        }
-
-        /* Add subtle animations */
-        * {
-            transition: all 0.3s ease;
         }
 
         /* Focus states for accessibility */
@@ -304,37 +364,111 @@
             outline: 2px solid var(--royal-gold);
             outline-offset: 2px;
         }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .navbar-nav {
+                gap: 0.5rem;
+            }
+            
+            .user-welcome {
+                font-size: 0.9rem;
+                padding: 6px 16px;
+            }
+            
+            .btn-signout {
+                padding: 6px 16px !important;
+                font-size: 0.9rem;
+            }
+            
+            .card-body {
+                padding: 2rem !important;
+            }
+            
+            .floating-saved-btn {
+                bottom: 20px;
+                right: 20px;
+                padding: 12px 20px !important;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .user-welcome span:not(.user-avatar) {
+                display: none;
+            }
+            
+            .btn-signout .btn-text {
+                display: none;
+            }
+            
+            .floating-saved-btn .btn-text {
+                display: none;
+            }
+        }
     </style>
 </head>
-<body class="bg-gradient-primary">
-    <!-- Hero Section -->
-    <div class="container-fluid min-vh-100 d-flex align-items-center">
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-robot me-2"></i>
+                Learn.ai
+            </a>
+            
+            <div class="navbar-nav ms-auto">
+                <div class="d-flex align-items-center gap-3">
+                    <% if (typeof user !== 'undefined' && user) { %>
+                        <!-- User Welcome -->
+                        <div class="user-welcome">
+                            <div class="user-avatar">
+                                <%= user.name.charAt(0).toUpperCase() %>
+                            </div>
+                            <span>Welcome, <%= user.name %>!</span>
+                        </div>
+                        
+                        <!-- Sign Out Button -->
+                        <form method="POST" action="/logout" class="d-inline">
+                            <button type="submit" class="btn btn-signout">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span class="btn-text">Sign Out</span>
+                            </button>
+                        </form>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid" style="padding-top: 100px; min-height: 100vh;">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8 col-xl-6">
                     
-                    <!-- Header Section -->
+                    <!-- Hero Section -->
                     <div class="text-center mb-5">
-                        <div class="d-inline-flex align-items-center bg-white bg-opacity-10 rounded-pill px-4 py-2 mb-4">
-                            <i class="bi bi-robot text-white me-2"></i>
-                            <span class="text-white fw-semibold">AI-Powered Learning Platform</span>
+                        <div class="hero-badge mb-4">
+                            <i class="bi bi-robot"></i>
+                            AI-Powered Learning Platform
                         </div>
-                        <h1 class="display-4 fw-bold text-white mb-3">
+                        <h1 class="display-4 hero-title">
                             Study Guide Generator
                         </h1>
-                        <p class="lead text-white-50 mb-0">
+                        <p class="hero-subtitle">
                             Generate personalized study materials instantly with the power of AI
                         </p>
                     </div>
                     
                     <!-- Main Form Card -->
-                    <div class="card shadow-lg border-0 rounded-4">
-                        <div class="card-body p-5">
+                    <div class="card shadow-lg">
+                        <div class="card-body">
                             <form action="/generate" method="POST" enctype="multipart/form-data">
                                 
                                 <!-- Input Method Selection -->
                                 <div class="mb-4">
-                                    <label class="form-label fw-semibold text-dark mb-3">
+                                    <label class="form-label">
                                         <i class="bi bi-book text-primary me-2"></i>
                                         What would you like to study?
                                     </label>
@@ -355,67 +489,59 @@
                                     <!-- Topic Input Section -->
                                     <div id="topicSection">
                                         <div class="input-group input-group-lg">
-                                            <span class="input-group-text bg-primary bg-opacity-10 border-primary border-opacity-25">
-                                                <i class="bi bi-search text-primary"></i>
+                                            <span class="input-group-text">
+                                                <i class="bi bi-search"></i>
                                             </span>
                                             <input type="text" 
-                                                   class="form-control border-primary border-opacity-25" 
+                                                   class="form-control" 
                                                    id="topic" 
                                                    name="topic" 
                                                    placeholder="e.g., World War II, Algebra, Photosynthesis">
                                         </div>
                                         <div class="form-text">
-                                            <small class="text-muted">Enter any subject or topic you want to master</small>
+                                            <small>Enter any subject or topic you want to master</small>
                                         </div>
                                     </div>
                                     
-                                    <!-- PDF Input Section (Initially Hidden) -->
+                                    <!-- PDF Input Section -->
                                     <div id="pdfSection" style="display: none;">
                                         <div class="input-group input-group-lg">
-                                            <span class="input-group-text bg-primary bg-opacity-10 border-primary border-opacity-25">
-                                                <i class="bi bi-file-pdf text-primary"></i>
+                                            <span class="input-group-text">
+                                                <i class="bi bi-file-pdf"></i>
                                             </span>
                                             <input type="file" 
-                                                   class="form-control border-primary border-opacity-25" 
+                                                   class="form-control" 
                                                    id="handout" 
                                                    name="document" 
                                                    accept=".pdf">
                                         </div>
                                         <div class="form-text">
-                                            <small class="text-muted">Upload your course handouts, lecture notes, or theory PDFs (Max 10MB)</small>
+                                            <small>Upload your course handouts, lecture notes, or theory PDFs (Max 10MB)</small>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Grade Level Section -->
                                 <div class="mb-4">
-                                    <label for="gradeLevel" class="form-label fw-semibold text-dark mb-3">
+                                    <label for="gradeLevel" class="form-label">
                                         <i class="bi bi-mortarboard text-primary me-2"></i>
                                         Select your academic level
                                     </label>
-                                    <select class="form-select form-select-lg border-primary border-opacity-25" 
+                                    <select class="form-select form-select-lg" 
                                             id="gradeLevel" 
                                             name="gradeLevel" 
                                             required>
                                         <option value="">Choose your grade level...</option>
-                                        <option value="elementary">
-                                            🎯 Elementary (K-5) - Basic concepts and foundations
-                                        </option>
-                                        <option value="middle">
-                                            📚 Middle School (6-8) - Intermediate understanding
-                                        </option>
-                                        <option value="high">
-                                            🎓 High School (9-12) - Advanced concepts
-                                        </option>
-                                        <option value="college">
-                                            🏛️ College - University level depth
-                                        </option>
+                                        <option value="elementary">🎯 Elementary (K-5) - Basic concepts and foundations</option>
+                                        <option value="middle">📚 Middle School (6-8) - Intermediate understanding</option>
+                                        <option value="high">🎓 High School (9-12) - Advanced concepts</option>
+                                        <option value="college">🏛️ College - University level depth</option>
                                     </select>
                                 </div>
 
                                 <!-- Study Type Section -->
                                 <div class="mb-5">
-                                    <label class="form-label fw-semibold text-dark mb-3">
+                                    <label class="form-label">
                                         <i class="bi bi-collection text-primary me-2"></i>
                                         Choose your preferred study format
                                     </label>
@@ -429,8 +555,7 @@
                                                    id="quicknotes" 
                                                    value="quicknotes" 
                                                    required>
-                                            <label class="btn btn-outline-primary btn-lg w-100 text-start p-4" 
-                                                   for="quicknotes">
+                                            <label class="btn study-type-card w-100 text-start" for="quicknotes">
                                                 <div class="d-flex align-items-center">
                                                     <div class="me-3">
                                                         <i class="bi bi-journal-text fs-2"></i>
@@ -453,8 +578,7 @@
                                                    id="flashcards" 
                                                    value="flashcards" 
                                                    required>
-                                            <label class="btn btn-outline-primary btn-lg w-100 text-start p-4" 
-                                                   for="flashcards">
+                                            <label class="btn study-type-card w-100 text-start" for="flashcards">
                                                 <div class="d-flex align-items-center">
                                                     <div class="me-3">
                                                         <i class="bi bi-card-text fs-2"></i>
@@ -477,8 +601,7 @@
                                                    id="quiz" 
                                                    value="quiz" 
                                                    required>
-                                            <label class="btn btn-outline-primary btn-lg w-100 text-start p-4" 
-                                                   for="quiz">
+                                            <label class="btn study-type-card w-100 text-start" for="quiz">
                                                 <div class="d-flex align-items-center">
                                                     <div class="me-3">
                                                         <i class="bi bi-question-circle fs-2"></i>
@@ -497,8 +620,7 @@
 
                                 <!-- Submit Button -->
                                 <div class="d-grid">
-                                    <button type="submit" 
-                                            class="btn btn-primary btn-lg py-3 fw-semibold">
+                                    <button type="submit" class="btn btn-primary btn-lg py-3">
                                         <i class="bi bi-magic me-2"></i>
                                         Generate Study Materials
                                         <i class="bi bi-arrow-right ms-2"></i>
@@ -508,27 +630,10 @@
                             </form>
                         </div>
                     </div>
-                                                </form>
-                        </div>
-                    </div>
-
-                    <!-- 🔧 ADD THIS SECTION: Saved Content Navigation -->
-                    <div class="row mt-4 mb-3">
-                        <div class="col-12">
-                            <div class="text-center">
-                                <a href="/saved-content" class="btn btn-outline-primary btn-lg rounded-pill px-5 py-3 floating-saved-btn">
-                                    <i class="bi bi-bookmarks me-2"></i>
-                                    View Saved Content
-                                </a>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- Footer -->
-
-                    <!-- Footer -->
-                    <div class="text-center mt-4">
-                        <small class="text-white-50">
+                    <div class="text-center mt-4 mb-5">
+                        <small class="footer-text">
                             Powered by AI • Personalized for your learning level
                         </small>
                     </div>
@@ -537,6 +642,17 @@
             </div>
         </div>
     </div>
+
+    <!-- Floating Saved Content Button -->
+    <a href="/saved-content" class="floating-saved-btn">
+        <i class="bi bi-bookmarks me-2"></i>
+        <span class="btn-text">View Saved Content</span>
+        <% if (typeof savedContentCount !== 'undefined' && savedContentCount > 0) { %>
+            <span class="badge">
+                <%= savedContentCount %>
+            </span>
+        <% } %>
+    </a>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
