@@ -9,37 +9,37 @@
     <link rel="stylesheet" href="/css/style.css">
     <style>
         .tiny-create-btn {
-    padding: 4px 12px !important;
-    font-size: 0.75rem !important;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    min-height: auto !important;
-    line-height: 1.2;
-}
+            padding: 4px 12px !important;
+            font-size: 0.75rem !important;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            min-height: auto !important;
+            line-height: 1.2;
+        }
 
-.tiny-create-btn i {
-    font-size: 0.75rem;
-    margin-right: 4px;
-}
+        .tiny-create-btn i {
+            font-size: 0.75rem;
+            margin-right: 4px;
+        }
 
         .create-btn-small {
-    padding: 8px 20px !important;
-    font-size: 0.9rem !important;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-}
+            padding: 8px 20px !important;
+            font-size: 0.9rem !important;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
 
-.create-btn-small i {
-    margin-right: 6px;
-}
+        .create-btn-small i {
+            margin-right: 6px;
+        }
 
-        /* Your existing royal dark theme CSS stays the same */
+        /* Royal dark theme CSS */
         :root {
             --royal-purple: #7C3AED;
             --royal-blue: #2563EB;
@@ -86,6 +86,7 @@
 
         .content-title { color: var(--royal-gold) !important; font-weight: 600; }
         .content-meta { color: var(--text-secondary) !important; font-size: 0.9rem; }
+        
         .grade-badge {
             background: linear-gradient(135deg, var(--royal-gold), #FCD34D) !important;
             color: var(--dark-bg) !important;
@@ -93,6 +94,16 @@
             font-weight: 600;
             padding: 6px 12px;
             border-radius: 12px;
+        }
+
+        .card-count-badge {
+            background: linear-gradient(135deg, var(--royal-blue), var(--royal-purple)) !important;
+            color: white !important;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 12px;
+            margin-left: 8px;
         }
 
         .loading-spinner {
@@ -175,13 +186,13 @@
                                     <i class="bi bi-journal-text me-1"></i>
                                     Load Quick Notes
                                 </button>
-                                <button class="btn filter-btn" onclick="loadFlashcards()" disabled style="opacity: 0.5;">
+                                <button class="btn filter-btn" onclick="loadFlashcards()">
                                     <i class="bi bi-card-text me-1"></i>
-                                    Flashcards (Soon)
+                                    Load Flashcards
                                 </button>
-                                <button class="btn filter-btn" onclick="loadQuizzes()" disabled style="opacity: 0.5;">
+                                <button class="btn filter-btn" onclick="loadQuizzes()">
                                     <i class="bi bi-question-circle me-1"></i>
-                                    Quizzes (Soon)
+                                    Load Quizzes
                                 </button>
                             </div>
                         </div>
@@ -198,14 +209,7 @@
                     </div>
 
                     <!-- Back Button -->
-                    <div class="row mt-5">
-                        <div class="col-12 text-center">
-                            <a href="/" class="btn btn-outline-light btn-lg rounded-pill px-5">
-                                <i class="bi bi-house me-2"></i>
-                                Back to Dashboard
-                            </a>
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>
@@ -236,7 +240,61 @@
                 }
             } catch (error) {
                 console.error('Error loading quick notes:', error);
-                showErrorState('Failed to load quick notes');
+                showErrorState('Failed to load quick notes', 'loadQuickNotes');
+            }
+        }
+
+        // Load Flashcards when button is clicked
+        async function loadFlashcards() {
+            const contentArea = document.getElementById('content-area');
+            
+            // Show loading state
+            contentArea.innerHTML = `
+                <div class="loading-spinner">
+                    <div class="spinner-border text-primary me-3" role="status"></div>
+                    <span>Loading your flashcards...</span>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/api/flashcards');
+                const flashcards = await response.json();
+                
+                if (flashcards.length > 0) {
+                    displayFlashcards(flashcards);
+                } else {
+                    showEmptyState('No flashcards found', 'Create some flashcards to see them here!');
+                }
+            } catch (error) {
+                console.error('Error loading flashcards:', error);
+                showErrorState('Failed to load flashcards', 'loadFlashcards');
+            }
+        }
+
+        // Load Quizzes when button is clicked
+        async function loadQuizzes() {
+            const contentArea = document.getElementById('content-area');
+            
+            // Show loading state
+            contentArea.innerHTML = `
+                <div class="loading-spinner">
+                    <div class="spinner-border text-primary me-3" role="status"></div>
+                    <span>Loading your quizzes...</span>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/api/quiz');
+                const quizzes = await response.json();
+                
+                if (quizzes.length > 0) {
+                    displayQuizzes(quizzes);
+                } else {
+                    showEmptyState('No quizzes found', 'Create some quizzes to see them here!');
+                }
+            } catch (error) {
+                console.error('Error loading quizzes:', error);
+                showErrorState('Failed to load quizzes', 'loadQuizzes');
             }
         }
 
@@ -285,30 +343,131 @@
             contentArea.innerHTML = html;
         }
 
+        // Display flashcards in grid format
+        function displayFlashcards(flashcards) {
+            const contentArea = document.getElementById('content-area');
+            
+            let html = `<div class="row">`;
+            
+            flashcards.forEach(flashcardSet => {
+                const cardCount = Array.isArray(flashcardSet.card_content) ? flashcardSet.card_content.length : 0;
+                
+                html += `
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="content-card p-4" onclick="viewFlashcard(${flashcardSet.id})">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="grade-badge">
+                                        Level : ${flashcardSet.grade_level.toUpperCase()}
+                                    </span>
+                                    <span class="card-count-badge">
+                                        ${cardCount} Cards
+                                    </span>
+                                </div>
+                                <button class="btn btn-sm btn-danger rounded-circle" onclick="event.stopPropagation(); deleteFlashcard(${flashcardSet.id})" style="width: 32px; height: 32px; padding: 0;">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                            <h5 class="content-title mb-3">${flashcardSet.topic}</h5>
+                            <div class="content-meta d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i class="bi bi-calendar3 me-1"></i>
+                                    ${new Date(flashcardSet.created_at).toLocaleDateString('en-US', { 
+                                        year: 'numeric', 
+                                        month: 'short', 
+                                        day: 'numeric' 
+                                    })}
+                                </span>
+                                <span>
+                                    <i class="bi bi-clock me-1"></i>
+                                    ${new Date(flashcardSet.created_at).toLocaleTimeString('en-US', { 
+                                        hour: '2-digit', 
+                                        minute: '2-digit' 
+                                    })}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            contentArea.innerHTML = html;
+        }
+
+        // Display quizzes in grid format
+        function displayQuizzes(quizzes) {
+            const contentArea = document.getElementById('content-area');
+            
+            let html = `<div class="row">`;
+            
+            quizzes.forEach(quiz => {
+                const questionCount = Array.isArray(quiz.content) ? quiz.content.length : 0;
+                
+                html += `
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="content-card p-4" onclick="viewQuiz(${quiz.id})">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="grade-badge">
+                                        Level : ${quiz.gradelevel.toUpperCase()}
+                                    </span>
+                                    <span class="card-count-badge">
+                                        ${questionCount} Questions
+                                    </span>
+                                </div>
+                                <button class="btn btn-sm btn-danger rounded-circle" onclick="event.stopPropagation(); deleteQuiz(${quiz.id})" style="width: 32px; height: 32px; padding: 0;">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                            <h5 class="content-title mb-3">${quiz.topic}</h5>
+                            <div class="content-meta d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i class="bi bi-calendar3 me-1"></i>
+                                    ${new Date(quiz.created_at).toLocaleDateString('en-US', { 
+                                        year: 'numeric', 
+                                        month: 'short', 
+                                        day: 'numeric' 
+                                    })}
+                                </span>
+                                <span>
+                                    <i class="bi bi-clock me-1"></i>
+                                    ${new Date(quiz.created_at).toLocaleTimeString('en-US', { 
+                                        hour: '2-digit', 
+                                        minute: '2-digit' 
+                                    })}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            contentArea.innerHTML = html;
+        }
+
         // Show empty state
         function showEmptyState(title, message) {
-    const contentArea = document.getElementById('content-area');
-    contentArea.innerHTML = `
-        <div class="welcome-state">
-            <i class="bi bi-bookmark-x"></i>
-            <h3 style="color: var(--text-secondary);">${title}</h3>
-            <p>${message}</p>
-        </div>
-    `;
-}
-
-
-
+            const contentArea = document.getElementById('content-area');
+            contentArea.innerHTML = `
+                <div class="welcome-state">
+                    <i class="bi bi-bookmark-x"></i>
+                    <h3 style="color: var(--text-secondary);">${title}</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
 
         // Show error state
-        function showErrorState(message) {
+        function showErrorState(message, retryFunction) {
             const contentArea = document.getElementById('content-area');
             contentArea.innerHTML = `
                 <div class="welcome-state">
                     <i class="bi bi-exclamation-triangle" style="color: #EF4444;"></i>
                     <h3 style="color: var(--text-secondary);">Error</h3>
                     <p>${message}</p>
-                    <button class="btn btn-outline-light btn-lg rounded-pill mt-3" onclick="loadQuickNotes()">
+                    <button class="btn btn-outline-light btn-lg rounded-pill mt-3" onclick="${retryFunction}()">
                         <i class="bi bi-arrow-clockwise me-2"></i>
                         Try Again
                     </button>
@@ -319,6 +478,16 @@
         // View individual note
         function viewNote(id) {
             window.location.href = `/view-quicknote/${id}`;
+        }
+
+        // View individual flashcard set
+        function viewFlashcard(id) {
+            window.location.href = `/view-flashcards/${id}`;
+        }
+
+        // View individual quiz
+        function viewQuiz(id) {
+            window.location.href = `/view-quiz/${id}`;
         }
 
         // Delete note
@@ -342,15 +511,46 @@
             }
         }
 
-        // Future functions for other content types
-        function loadFlashcards() {
-            // Will implement when flashcards are ready
-            showEmptyState('Flashcards Coming Soon!', 'This feature will be available soon.');
+        // Delete flashcard set
+        function deleteFlashcard(id) {
+            if (confirm('Are you sure you want to delete this flashcard set? This action cannot be undone.')) {
+                fetch(`/delete-content/flashcards/${id}`, {
+                    method: 'DELETE',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadFlashcards(); // Reload the content
+                    } else {
+                        alert('Failed to delete flashcard set');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to delete flashcard set');
+                });
+            }
         }
 
-        function loadQuizzes() {
-            // Will implement when quizzes are ready
-            showEmptyState('Quizzes Coming Soon!', 'This feature will be available soon.');
+        // Delete quiz
+        function deleteQuiz(id) {
+            if (confirm('Are you sure you want to delete this quiz? This action cannot be undone.')) {
+                fetch(`/delete-content/quiz/${id}`, {
+                    method: 'DELETE',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadQuizzes(); // Reload the content
+                    } else {
+                        alert('Failed to delete quiz');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to delete quiz');
+                });
+            }
         }
     </script>
 </body>
