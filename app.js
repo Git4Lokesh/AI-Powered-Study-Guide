@@ -101,42 +101,30 @@ async function initializeDatabase() {
             );
         `);
 
-        // Quicknotes table with user_id
-        await db.query(`
-            CREATE TABLE IF NOT EXISTS quicknotes (
-                id SERIAL PRIMARY KEY,
-                topic VARCHAR(255) NOT NULL,
-                gradelevel VARCHAR(50) NOT NULL,
-                note_content TEXT NOT NULL,
-                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        `);
+        // Add user_id columns safely (won't crash if already exists)
+        try {
+            await db.query(`ALTER TABLE quicknotes ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE;`);
+        } catch (err) {
+            if (!err.message.includes('already exists')) {
+                console.error('Error adding user_id to quicknotes:', err.message);
+            }
+        }
 
-        // Flashcards table
-        await db.query(`
-            CREATE TABLE IF NOT EXISTS flashcards (
-                id SERIAL PRIMARY KEY,
-                topic VARCHAR(255) NOT NULL,
-                grade_level VARCHAR(50) NOT NULL,
-                card_content JSONB NOT NULL,
-                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(topic, grade_level, user_id)
-            );
-        `);
+        try {
+            await db.query(`ALTER TABLE flashcards ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE;`);
+        } catch (err) {
+            if (!err.message.includes('already exists')) {
+                console.error('Error adding user_id to flashcards:', err.message);
+            }
+        }
 
-        // Quiz table
-        await db.query(`
-            CREATE TABLE IF NOT EXISTS quiz (
-                id SERIAL PRIMARY KEY,
-                topic VARCHAR(255) NOT NULL,
-                gradelevel VARCHAR(50) NOT NULL,
-                content JSONB NOT NULL,
-                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        `);
+        try {
+            await db.query(`ALTER TABLE quiz ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE;`);
+        } catch (err) {
+            if (!err.message.includes('already exists')) {
+                console.error('Error adding user_id to quiz:', err.message);
+            }
+        }
 
         console.log("Database initialized successfully");
     } catch (error) {
@@ -1159,3 +1147,4 @@ app.delete("/delete-content/quiz/:id", ensureAuthenticated, async (req, res) => 
         });
     }
 });
+
