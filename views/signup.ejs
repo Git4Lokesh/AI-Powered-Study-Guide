@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - AI Study Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --royal-purple: #7C3AED;
+            --royal-blue: #2563EB;
+            --royal-gold: #F59E0B;
+            --dark-bg: #0F172A;
+            --dark-card: #1E293B;
+            --dark-border: #334155;
+            --royal-gradient: linear-gradient(135deg, #0F172A 0%, #1E293B 25%, #312E81 50%, #7C3AED 100%);
+            --text-primary: #F8FAFC;
+            --text-secondary: #CBD5E1;
+            --text-muted: #94A3B8;
+        }
+
+        body {
+            background: var(--royal-gradient);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .auth-left {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+        }
+
+        .auth-right {
+            flex: 1;
+            background: var(--royal-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-card {
+            background: var(--dark-card);
+            border: 2px solid var(--royal-purple);
+            border-radius: 20px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(124, 58, 237, 0.3);
+            backdrop-filter: blur(20px);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-header h1 {
+            color: var(--royal-gold);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-header p {
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .form-floating label {
+            color: var(--text-muted);
+        }
+
+        .form-control {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid var(--dark-border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            background: rgba(15, 23, 42, 0.9);
+            border-color: var(--royal-gold);
+            box-shadow: 0 0 0 0.25rem rgba(245, 158, 11, 0.25);
+            color: var(--text-primary);
+        }
+
+        .form-control::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn-signup {
+            background: linear-gradient(135deg, var(--royal-purple) 0%, var(--royal-blue) 100%);
+            border: 2px solid var(--royal-gold);
+            color: white;
+            font-weight: 600;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            width: 100%;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-signup:hover {
+            background: linear-gradient(135deg, #8B5CF6 0%, #3B82F6 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(124, 58, 237, 0.5);
+            color: white;
+        }
+
+        .btn-google {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--dark-border);
+            color: var(--text-primary);
+            font-weight: 500;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            width: 100%;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-google:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--royal-gold);
+            transform: translateY(-2px);
+            color: var(--text-primary);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 1.5rem 0;
+            position: relative;
+            color: var(--text-muted);
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--dark-border);
+        }
+
+        .divider span {
+            background: var(--dark-card);
+            padding: 0 1rem;
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .auth-footer a {
+            color: var(--royal-gold);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .auth-footer a:hover {
+            color: #FCD34D;
+        }
+
+        .features-showcase {
+            max-width: 500px;
+            color: var(--text-primary);
+        }
+
+        .feature-hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .feature-hero h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--royal-gold);
+            margin-bottom: 1rem;
+        }
+
+        .feature-hero p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid var(--royal-purple);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(124, 58, 237, 0.2);
+            border-color: var(--royal-gold);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--royal-gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .testimonial {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid var(--royal-purple);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .testimonial::before {
+            content: '"';
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            font-size: 4rem;
+            color: var(--royal-gold);
+            line-height: 1;
+        }
+
+        .testimonial-text {
+            color: var(--text-secondary);
+            font-style: italic;
+            margin-bottom: 1rem;
+            padding-top: 1rem;
+        }
+
+        .testimonial-author {
+            color: var(--royal-gold);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .auth-container {
+                flex-direction: column;
+            }
+            
+            .auth-right {
+                display: none;
+            }
+            
+            .auth-left {
+                min-height: 100vh;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <!-- Left Side - Signup Form -->
+        <div class="auth-left">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1>Join AI Study</h1>
+                    <p>Start your intelligent learning journey today</p>
+                </div>
+
+                <form method="POST" action="/signup">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="fullName" name="fullName" placeholder="John Doe" required>
+                        <label for="fullName">Full Name</label>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" required>
+                        <label for="email">Email address</label>
+                    </div>
+                    
+                    <div class="form-floating mb-4">
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Password" required minlength="6">
+                        <label for="password">Password</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-signup mb-3">
+                        <i class="bi bi-person-plus me-2"></i>
+                        Create Account
+                    </button>
+                </form>
+
+                <div class="divider">
+                    <span>or</span>
+                </div>
+                
+                <a href="/auth/google" class="btn btn-google">
+                    <i class="bi bi-google"></i>
+                    Continue with Google
+                </a>
+
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="/login">Sign in</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Success Stories & Stats -->
+        <div class="auth-right">
+            <div class="features-showcase">
+                <div class="feature-hero">
+                    <h2>Join Thousands</h2>
+                    <p>Students worldwide are already accelerating their learning</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">10K+</div>
+                        <div class="stat-label">Study Materials Generated</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">95%</div>
+                        <div class="stat-label">Success Rate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">50+</div>
+                        <div class="stat-label">Subjects Covered</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">AI Assistance</div>
+                    </div>
+                </div>
+
+                <div class="testimonial">
+                    <div class="testimonial-text">
+                        This platform transformed how I study. I can now generate comprehensive flashcards and notes for any topic in minutes. It's like having a personal tutor available 24/7.
+                    </div>
+                    <div class="testimonial-author">
+                        — Sarah M., Computer Science Student
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
