@@ -29,7 +29,6 @@ marked.setOptions({
     gfm: true,
     sanitize: true
 });
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static("public"));
@@ -49,7 +48,7 @@ const upload = multer({
         }
     }
 });
-
+app.set('trust proxy', 1);
 app.use(session({
     secret: process.env.SESSION_SECRET || 'your-secret-key-here',
     resave: false,
@@ -1147,5 +1146,6 @@ app.delete("/delete-content/quiz/:id", ensureAuthenticated, async (req, res) => 
         });
     }
 });
+
 
 
