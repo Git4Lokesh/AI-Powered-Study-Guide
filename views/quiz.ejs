@@ -71,6 +71,7 @@ window.MathJax = {
       --text-muted: #94A3B8;
   }
 
+
   .math-equation { 
     color: var(--royal-gold) !important;
     font-weight: 500;
@@ -116,6 +117,7 @@ window.MathJax = {
         </div>
     <% } %>
 
+
     <div class="container-fluid py-4" style="<%= !showResults ? 'padding-top: 80px !important;' : '' %>">
         <div class="container">
             <div class="row justify-content-center">
@@ -131,6 +133,7 @@ window.MathJax = {
                             <small class="text-white-50 d-block">Assessment</small>
                         </div>
                     </div>
+
 
                     <!-- Topic Header -->
                     <div class="text-center mb-4">
@@ -151,7 +154,32 @@ window.MathJax = {
                         <% } %>
                     </div>
 
+
                     <% if (showResults) { %>
+                         <% if (typeof saved !== 'undefined' && saved) { %>
+        <div id="success-banner" class="alert alert-success d-flex align-items-center justify-content-center mb-4 border-0 shadow-sm" 
+             style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1050; min-width: 300px;">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-check-circle-fill text-success me-3 fs-4"></i>
+                <div>
+                    <strong class="text-success">Quiz Saved Successfully!</strong>
+                    <small class="d-block text-success-emphasis">Your quiz has been saved to your collection.</small>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            // Auto-hide success banner after 3 seconds
+            setTimeout(function() {
+                const banner = document.getElementById('success-banner');
+                if (banner) {
+                    banner.style.transition = 'opacity 0.5s ease-out';
+                    banner.style.opacity = '0';
+                    setTimeout(() => banner.remove(), 500);
+                }
+            }, 3000);
+        </script>
+    <% } %>
                         <!-- Quiz Results -->
                         <div class="card border-0 shadow-lg rounded-4">
                             <div class="card-body p-5 text-center">
@@ -235,6 +263,7 @@ window.MathJax = {
                                     <% }) %>
                                 </div>
 
+
                                 <!-- ✨ AI Performance Analysis Section ✨ -->
                                 <% if (typeof performanceAnalysis !== 'undefined' && performanceAnalysis) { %>
                                     <div class="card mt-4 border-0 shadow-lg rounded-4 analysis-card">
@@ -277,8 +306,28 @@ window.MathJax = {
                                     </div>
                                 <% } %>
                                 
+                                <!-- Save Quiz Form -->
+                                <!-- Save Quiz Form -->
+<div class="text-center mt-4 mb-3">
+    <form action="/save-quiz" method="POST" style="display: inline;">
+        <input type="hidden" name="topic" value="<%= topic %>">
+        <input type="hidden" name="gradeLevel" value="<%= gradeLevel %>">
+        <input type="hidden" name="content" value='<%= JSON.stringify(content) %>'>
+        <input type="hidden" name="score" value="<%= score %>">
+        <input type="hidden" name="userAnswers" value='<%= JSON.stringify(userAnswers) %>'>
+        <% if (typeof performanceAnalysis !== 'undefined' && performanceAnalysis) { %>
+            <input type="hidden" name="performanceAnalysis" value="<%- performanceAnalysis.replace(/"/g, '&quot;') %>">
+        <% } %>
+        <button type="submit" class="btn btn-success btn-lg px-4 py-3 me-3">
+            <i class="bi bi-bookmark-plus me-2"></i>
+            Save Quiz
+        </button>
+    </form>
+</div>
+
+                                
                                 <!-- Action Buttons -->
-                                <div class="row mt-5">
+                                <div class="row mt-3">
                                     <div class="col-md-6 mb-3">
                                         <a href="/" class="btn btn-primary btn-lg w-100 py-3 action-button">
                                             <i class="bi bi-house me-2"></i>
@@ -400,6 +449,7 @@ window.MathJax = {
                         </form>
                     <% } %>
 
+
                     <!-- Study Tips -->
                     <div class="text-center mt-4">
                         <small class="text-white-50">
@@ -412,10 +462,17 @@ window.MathJax = {
                         </small>
                     </div>
 
+
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Add your existing scripts here -->
+
+</body>
+</html>
+
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
