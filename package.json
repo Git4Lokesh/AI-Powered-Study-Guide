@@ -9,9 +9,9 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "axios": "^1.10.0",
+    "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "connect-redis": "^9.0.0",
     "dotenv": "^17.2.0",
@@ -23,8 +23,12 @@
     "mathjax-node": "^1.2.1",
     "multer": "^2.0.1",
     "nodemon": "^3.1.10",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
     "pdf-parse": "^1.1.1",
     "pg": "^8.16.3",
     "redis": "^5.6.0"
-  }
+  },
+  "devDependencies": {},
+  "description": ""
 }
