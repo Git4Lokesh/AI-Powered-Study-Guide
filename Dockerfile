@@ -1,5 +1,5 @@
 # Use the official Node.js 18 Alpine image
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Set the working directory inside the container
 WORKDIR /usr/src/app
@@ -25,4 +25,5 @@ USER nextjs
 EXPOSE 3000
 
 # Define the command to run the application
+
 CMD ["node", "app.js"]
