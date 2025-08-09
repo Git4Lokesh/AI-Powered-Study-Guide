@@ -19,7 +19,9 @@ const saltRounds = 12;
 // Database configuration - works for both local and production
 const db = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { 
+  ssl: process.env.DATABASE_URL?.includes('render.com') ? { 
+    rejectUnauthorized: false 
+  } : process.env.NODE_ENV === 'production' ? { 
     rejectUnauthorized: false 
   } : false
 });
@@ -86,53 +88,6 @@ function processMathContent(content) {
     return processedContent;
 }
 
-// Database initialization function
-async function initializeDatabase() {
-    try {
-        // Users table
-        await db.query(`
-            CREATE TABLE IF NOT EXISTS users (
-                id SERIAL PRIMARY KEY,
-                email VARCHAR(255) UNIQUE NOT NULL,
-                password VARCHAR(255) NOT NULL,
-                name VARCHAR(255) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        `);
-
-        // Add user_id columns safely (won't crash if already exists)
-        try {
-            await db.query(`ALTER TABLE quicknotes ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE;`);
-        } catch (err) {
-            if (!err.message.includes('already exists')) {
-                console.error('Error adding user_id to quicknotes:', err.message);
-            }
-        }
-
-        try {
-            await db.query("CREATE TABLE flashcards(id SERIAL PRIMARY KEY,topic text,grade_level text,card_content jsonb,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,user_id int REFERENCES users(id) ON DELETE CASCADE);")
-        } catch (err) {
-            if (!err.message.includes('already exists')) {
-                console.error('Error adding user_id to flashcards:', err.message);
-            }
-        }
-
-        try {
-            await db.query("CREATE TABLE quiz(id SERIAL PRIMARY KEY,topic text,gradelevel text,content jsonb,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,user_id int REFERENCES users(id) ON DELETE CASCADE);")
-        } catch (err) {
-            if (!err.message.includes('already exists')) {
-                console.error('Error adding user_id to quiz:', err.message);
-            }
-        }
-
-        console.log("Database initialized successfully");
-    } catch (error) {
-        console.error("Database initialization failed:", error);
-    }
-}
-
-// Initialize database on startup
-initializeDatabase();
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
@@ -1146,6 +1101,5 @@ app.delete("/delete-content/quiz/:id", ensureAuthenticated, async (req, res) => 
         });
     }
 });
-
 
 
